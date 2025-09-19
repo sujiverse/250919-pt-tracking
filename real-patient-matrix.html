@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏥 실제 환자 추적 매트릭스 (9월)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            margin: 0 0 5px 0;
+            font-size: 22px;
+        }
+
+        .header .subtitle {
+            margin: 0 0 10px 0;
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            font-size: 11px;
+        }
+
+        .controls {
+            background: white;
+            padding: 8px 15px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .filter-input {
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            width: 120px;
+        }
+
+        .container {
+            height: calc(100vh - 120px);
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* 환자명 고정 열 */
+        .patient-column {
+            width: 100px;
+            background: white;
+            border-right: 2px solid #ddd;
+            overflow-y: auto;
+            z-index: 10;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+        }
+
+        .patient-header {
+            height: 40px;
+            background: #343a40;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 11px;
+            position: sticky;
+            top: 0;
+            z-index: 15;
+        }
+
+        .patient-cell {
+            height: 35px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            font-size: 10px;
+            font-weight: 600;
+            color: #495057;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .patient-cell:hover {
+            background: #f8f9fa;
+        }
+
+        .patient-cell.frequent {
+            border-left: 4px solid #28a745;
+            background: #f8fff9;
+        }
+
+        /* 데이터 스크롤 영역 */
+        .data-scroll {
+            flex: 1;
+            overflow: auto;
+        }
+
+        .data-grid {
+            display: inline-block;
+            min-width: fit-content;
+        }
+
+        /* 날짜 헤더 */
+        .date-header {
+            display: flex;
+            height: 40px;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            background: white;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .date-cell {
+            width: 90px;
+            min-width: 90px;
+            border-right: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            font-weight: bold;
+            font-size: 10px;
+            color: #495057;
+        }
+
+        .date-cell:hover {
+            background: #e9ecef;
+        }
+
+        /* 환자별 데이터 행 */
+        .patient-row {
+            display: flex;
+            height: 35px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .treatment-cell {
+            width: 90px;
+            min-width: 90px;
+            border-right: 1px solid #e9ecef;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            cursor: pointer;
+            position: relative;
+            padding: 2px;
+        }
+
+        .treatment-cell:hover {
+            transform: scale(1.05);
+            z-index: 3;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .treatment-cell.empty {
+            background: #ffffff;
+        }
+
+        .treatment-cell.empty:hover {
+            background: #f8f9fa;
+        }
+
+        /* 치료사별 색깔 */
+        .치료사A { background: #ffe5e5; color: #c92a2a; border: 1px solid #ff9999; }
+        .치료사B { background: #e5f3ff; color: #1971c2; border: 1px solid #99ccff; }
+        .치료사C { background: #e5ffe5; color: #2f9e44; border: 1px solid #99ff99; }
+        .치료사D { background: #fff5e5; color: #e8590c; border: 1px solid #ffcc99; }
+        .치료사E { background: #f3e5ff; color: #7950f2; border: 1px solid #cc99ff; }
+        .특별치료사 { background: #e5ffff; color: #0ca678; border: 1px solid #99ffff; }
+        .미정 { background: #f5f5f5; color: #666; border: 1px solid #ccc; }
+
+        .first-visit {
+            position: relative;
+        }
+
+        .first-visit::after {
+            content: "⭐";
+            position: absolute;
+            top: 1px;
+            right: 2px;
+            font-size: 8px;
+            color: #ffc107;
+        }
+
+        .treatment-text {
+            text-align: center;
+            line-height: 1.1;
+            font-weight: bold;
+        }
+
+        .time-text {
+            font-size: 7px;
+            color: #666;
+            margin-top: 1px;
+        }
+
+        /* 범례 */
+        .legend {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            background: white;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .legend div {
+            margin: 1px 0;
+            padding: 1px 6px;
+            border-radius: 2px;
+        }
+
+        .legend .section {
+            font-weight: bold;
+            margin-top: 5px;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .patient-column { width: 80px; }
+            .date-cell, .treatment-cell { width: 70px; min-width: 70px; }
+            .filter-input { width: 80px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏥 실제 환자 추적 매트릭스</h1>
+        <p class="subtitle">2025년 9월 실제 치료 데이터 • 환자별 중복 방문 추적</p>
+        <div class="stats">
+            <span id="patientCount">환자: 24명</span>
+            <span id="dateRange">기간: 09/01~09/22</span>
+            <span id="treatmentCount">치료: 56건</span>
+            <span id="frequentCount">다회방문: 7명</span>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="filter-group">
+            <input type="text" id="patientFilter" class="filter-input" placeholder="환자명 검색..." onkeyup="filterPatients()">
+            <select id="therapistFilter" class="filter-input" onchange="filterPatients()">
+                <option value="">전체 치료사</option>
+                <option value="치료사A">치료사A</option>
+                <option value="치료사B">치료사B</option>
+                <option value="치료사C">치료사C</option>
+                <option value="특별치료사">특별치료사</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>
+                <input type="checkbox" id="frequentOnly" onchange="filterPatients()"> 다회방문만 (3회+)
+            </label>
+            <label>
+                <input type="checkbox" id="firstVisitOnly" onchange="filterPatients()"> 첫내원만
+            </label>
+            <span style="margin-left: 15px; font-size: 11px; color: #666;">
+                좌우 화살표: 스크롤 | 환자명 클릭: 하이라이트
+            </span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 환자명 고정 열 -->
+        <div class="patient-column">
+            <div class="patient-header">환자명</div>
+            <div id="patient-list">
+                <!-- JavaScript로 생성 -->
+            </div>
+        </div>
+
+        <!-- 데이터 스크롤 영역 -->
+        <div class="data-scroll" id="dataScroll">
+            <div class="data-grid">
+                <!-- 날짜 헤더 -->
+                <div class="date-header" id="dateHeader">
+                    <!-- JavaScript로 생성 -->
+                </div>
+
+                <!-- 환자별 데이터 행들 -->
+                <div id="patientRows">
+                    <!-- JavaScript로 생성 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 치료사별 색깔 범례 -->
+    <div class="legend">
+        <div class="section">👩‍⚕️ 치료사</div>
+        <div class="치료사A">치료사A (환자O 등)</div>
+        <div class="치료사B">치료사B (환자WB, 환자RB 등)</div>
+        <div class="치료사C">치료사C (환자SC, 환자VC 등)</div>
+        <div class="특별치료사">특별치료사 (환자DX)</div>
+
+        <div class="section">📊 표시</div>
+        <div>⭐ = 첫내원</div>
+        <div>C.4/10(4) = C코스 10회 중 4차, 올해 4번째</div>
+        <div>녹색 테두리 = 다회방문 환자 (3회+)</div>
+
+        <div class="section">🔥 다회방문 TOP</div>
+        <div>환자W (6회)</div>
+        <div>환자B (6회)</div>
+        <div>환자R (5회)</div>
+        <div>환자O (4회)</div>
+    </div>
+
+    <script>
+        // 실제 파싱된 데이터
+        const ptData = {
+            "patients": [
+                "환자A", "환자B", "환자C", "환자D", "환자E", "환자F", "환자G",
+                "환자H", "환자I", "환자J", "환자K", "환자L", "환자N", "환자M",
+                "환자O", "환자P", "환자Q", "환자R", "환자S", "환자T", "환자V",
+                "환자W", "환자U", "환자X"
+            ],
+            "dates": [
+                "09/01/2025", "09/04/2025", "09/05/2025", "09/06/2025", "09/08/2025",
+                "09/11/2025", "09/12/2025", "09/13/2025", "09/15/2025", "09/18/2025",
+                "09/19/2025", "09/20/2025", "09/22/2025"
+            ],
+            "matrix": {
+                "환자A": {
+                    "09/06/2025": {
+                        "therapist": "미정",
+                        "time": "10:00",
+                        "treatment": "C.8/10(8)",
+                        "course": "C",
+                        "is_first": false
+                    }
+                },
+                "환자B": {
+                    "09/05/2025": {"therapist": "미정", "time": "11:30", "treatment": "C.1/10(1)", "course": "C", "is_first": true},
+                    "09/08/2025": {"therapist": "미정", "time": "6:00", "treatment": "C.2/10(2)", "course": "C", "is_first": false},
+                    "09/11/2025": {"therapist": "미정", "time": "11:00", "treatment": "C.3/10(3)", "course": "C", "is_first": false},
+                    "09/15/2025": {"therapist": "미정", "time": "6:30", "treatment": "C.4/10(4)", "course": "C", "is_first": false},
+                    "09/18/2025": {"therapist": "미정", "time": "12:00", "treatment": "C.5/10(5)", "course": "C", "is_first": false},
+                    "09/22/2025": {"therapist": "미정", "time": "7:30", "treatment": "C.4/10(4)", "course": "C", "is_first": false}
+                },
+                "환자C": {
+                    "09/13/2025": {"therapist": "치료사B", "time": "1:00", "treatment": "C.38", "course": "C", "is_first": false},
+                    "09/19/2025": {"therapist": "치료사B", "time": "6:30", "treatment": "C.40", "course": "C", "is_first": false}
+                },
+                "환자D": {
+                    "09/01/2025": {"therapist": "특별치료사", "time": "10:30", "treatment": "C.3", "course": "C", "is_first": false},
+                    "09/05/2025": {"therapist": "특별치료사", "time": "10:00", "treatment": "C.4", "course": "C", "is_first": false},
+                    "09/22/2025": {"therapist": "특별치료사", "time": "10:30", "treatment": "C.5", "course": "C", "is_first": false}
+                },
+                "환자E": {
+                    "09/01/2025": {"therapist": "미정", "time": "7:00", "treatment": "B(C).6/10(7)", "course": "B(C)", "is_first": false}
+                },
+                "환자F": {
+                    "09/18/2025": {"therapist": "미정", "time": "7:00", "treatment": "D.1", "course": "D", "is_first": true}
+                },
+                "환자G": {
+                    "09/22/2025": {"therapist": "치료사C", "time": "5:30", "treatment": "미상", "course": "미상", "is_first": false}
+                },
+                "환자H": {
+                    "09/01/2025": {"therapist": "미정", "time": "11:30", "treatment": "C.6/10(37)", "course": "C", "is_first": false},
+                    "09/11/2025": {"therapist": "미정", "time": "11:40", "treatment": "C.7/10(38)", "course": "C", "is_first": false},
+                    "09/12/2025": {"therapist": "미정", "time": "11:30", "treatment": "C.8/10(39)", "course": "C", "is_first": false},
+                    "09/13/2025": {"therapist": "미정", "time": "9:00", "treatment": "C.9/10(40)", "course": "C", "is_first": false}
+                },
+                "환자I": {
+                    "09/08/2025": {"therapist": "치료사B", "time": "7:20", "treatment": "C.1", "course": "C", "is_first": true}
+                },
+                "환자J": {
+                    "09/04/2025": {"therapist": "미정", "time": "4:30", "treatment": "D.V", "course": "D", "is_first": false},
+                    "09/11/2025": {"therapist": "미정", "time": "6:30", "treatment": "D.11", "course": "D", "is_first": false}
+                },
+                "환자K": {
+                    "09/13/2025": {"therapist": "치료사C", "time": "10:00", "treatment": "D(H).9/10(21)", "course": "D(H)", "is_first": false},
+                    "09/15/2025": {"therapist": "치료사C", "time": "6:40", "treatment": "D(H).10/10(22)", "course": "D(H)", "is_first": false},
+                    "09/22/2025": {"therapist": "치료사C", "time": "6:30", "treatment": "D(H).1/10(23)", "course": "D(H)", "is_first": true}
+                },
+                "환자L": {
+                    "09/13/2025": {"therapist": "치료사B", "time": "11:00", "treatment": "A.5", "course": "A", "is_first": false},
+                    "09/20/2025": {"therapist": "치료사B", "time": "10:00", "treatment": "A.6", "course": "A", "is_first": false}
+                },
+                "환자N": {
+                    "09/18/2025": {"therapist": "치료사B", "time": "4:40", "treatment": "A.6", "course": "A", "is_first": false}
+                },
+                "환자M": {
+                    "09/08/2025": {"therapist": "치료사B", "time": "12:00", "treatment": "충격파15.1", "course": "충격파15", "is_first": true}
+                },
+                "환자O": {
+                    "09/12/2025": {"therapist": "미정", "time": "6:00", "treatment": "A.22", "course": "A", "is_first": false},
+                    "09/13/2025": {"therapist": "미정", "time": "12:30", "treatment": "A.23", "course": "A", "is_first": false},
+                    "09/15/2025": {"therapist": "미정", "time": "1:00", "treatment": "A.24", "course": "A", "is_first": false},
+                    "09/19/2025": {"therapist": "미정", "time": "12:00", "treatment": "A.25", "course": "A", "is_first": false}
+                },
+                "환자P": {
+                    "09/11/2025": {"therapist": "치료사D", "time": "7:30", "treatment": "C.1", "course": "C", "is_first": true},
+                    "09/12/2025": {"therapist": "치료사D", "time": "7:00", "treatment": "D.2", "course": "D", "is_first": false}
+                },
+                "환자Q": {
+                    "09/18/2025": {"therapist": "미정", "time": "5:30", "treatment": "D.6", "course": "D", "is_first": false}
+                },
+                "환자R": {
+                    "09/04/2025": {"therapist": "치료사B", "time": "2:00", "treatment": "D.1", "course": "D", "is_first": true},
+                    "09/12/2025": {"therapist": "치료사B", "time": "4:10", "treatment": "D.2", "course": "D", "is_first": false},
+                    "09/13/2025": {"therapist": "치료사B", "time": "11:30", "treatment": "D.3", "course": "D", "is_first": false},
+                    "09/18/2025": {"therapist": "치료사B", "time": "11:00", "treatment": "D3/10(4)", "course": "D", "is_first": false},
+                    "09/22/2025": {"therapist": "치료사B", "time": "12:00", "treatment": "D.", "course": "D", "is_first": false}
+                },
+                "환자S": {
+                    "09/15/2025": {"therapist": "치료사C", "time": "10:40", "treatment": "C(D).3/10(3)", "course": "C(D)", "is_first": false},
+                    "09/22/2025": {"therapist": "치료사C", "time": "11:00", "treatment": "C(D).4/10(4)", "course": "C(D)", "is_first": false}
+                },
+                "환자T": {
+                    "09/04/2025": {"therapist": "미정", "time": "7:00", "treatment": "C.4", "course": "C", "is_first": false}
+                },
+                "환자V": {
+                    "09/01/2025": {"therapist": "치료사C", "time": "12:30", "treatment": "D.12", "course": "D", "is_first": false},
+                    "09/06/2025": {"therapist": "치료사C", "time": "1:00", "treatment": "D.13", "course": "D", "is_first": false},
+                    "09/11/2025": {"therapist": "치료사C", "time": "10:00", "treatment": "C.15", "course": "C", "is_first": false},
+                    "09/15/2025": {"therapist": "치료사C", "time": "12:00", "treatment": "C(D).1/10(17)", "course": "C(D)", "is_first": true}
+                },
+                "환자W": {
+                    "09/01/2025": {"therapist": "치료사B", "time": "3:00", "treatment": "B(C).4", "course": "B(C)", "is_first": false},
+                    "09/04/2025": {"therapist": "치료사B", "time": "3:00", "treatment": "C(D).2/5(5)", "course": "C(D)", "is_first": false},
+                    "09/15/2025": {"therapist": "치료사B", "time": "4:00", "treatment": "C(D).3/5(6)", "course": "C(D)", "is_first": false},
+                    "09/18/2025": {"therapist": "치료사B", "time": "4:00", "treatment": "C(D).4/5(7)", "course": "C(D)", "is_first": false},
+                    "09/19/2025": {"therapist": "치료사B", "time": "4:00", "treatment": "C(D).5/5(8)", "course": "C(D)", "is_first": false},
+                    "09/22/2025": {"therapist": "치료사B", "time": "4:00", "treatment": "C(D).5/5(8)", "course": "C(D)", "is_first": false}
+                },
+                "환자U": {
+                    "09/01/2025": {"therapist": "미정", "time": "7:30", "treatment": "D.41", "course": "D", "is_first": false}
+                },
+                "환자X": {
+                    "09/04/2025": {"therapist": "미정", "time": "4:00", "treatment": "D.30", "course": "D", "is_first": false}
+                }
+            }
+        };
+
+        let filteredData = null;
+
+        // 다회 방문 환자 식별
+        function getFrequentPatients() {
+            const frequent = [];
+            for (const patient in ptData.matrix) {
+                if (Object.keys(ptData.matrix[patient]).length >= 3) {
+                    frequent.push(patient);
+                }
+            }
+            return frequent;
+        }
+
+        // 치료사 클래스명 정규화
+        function getTherapistClass(therapistName) {
+            const validClasses = ['치료사A', '치료사B', '치료사C', '치료사D', '특별치료사', '미정'];
+            return validClasses.includes(therapistName) ? therapistName : '미정';
+        }
+
+        // 테이블 생성
+        function createTable() {
+            const currentData = filteredData || ptData;
+            const frequentPatients = getFrequentPatients();
+
+            // 환자 목록 렌더링
+            const patientList = document.getElementById('patient-list');
+            patientList.innerHTML = currentData.patients.map(patient => {
+                const isFrequent = frequentPatients.includes(patient);
+                return `
+                    <div class="patient-cell ${isFrequent ? 'frequent' : ''}" onclick="highlightPatient('${patient}')">
+                        ${patient}
+                    </div>
+                `;
+            }).join('');
+
+            // 날짜 헤더 렌더링 (MM/DD 형식으로 변환)
+            const dateHeader = document.getElementById('dateHeader');
+            dateHeader.innerHTML = currentData.dates.map(date => {
+                const shortDate = date.substring(5); // MM/DD 부분만
+                return `<div class="date-cell">${shortDate}</div>`;
+            }).join('');
+
+            // 환자별 데이터 행 렌더링
+            const patientRows = document.getElementById('patientRows');
+            patientRows.innerHTML = currentData.patients.map(patient => {
+                const rowCells = currentData.dates.map(date => {
+                    const treatment = ptData.matrix[patient] && ptData.matrix[patient][date];
+                    if (treatment) {
+                        const therapistClass = getTherapistClass(treatment.therapist);
+                        const firstClass = treatment.is_first ? 'first-visit' : '';
+
+                        return `
+                            <div class="treatment-cell ${therapistClass} ${firstClass}"
+                                 title="${patient}\\n${date} ${treatment.time}\\n${treatment.therapist}\\n${treatment.treatment}">
+                                <div class="treatment-text">${treatment.treatment}</div>
+                                <div class="time-text">${treatment.time}</div>
+                            </div>
+                        `;
+                    } else {
+                        return `<div class="treatment-cell empty"></div>`;
+                    }
+                }).join('');
+
+                return `<div class="patient-row">${rowCells}</div>`;
+            }).join('');
+        }
+
+        // 환자 검색 및 필터
+        function filterPatients() {
+            const searchTerm = document.getElementById('patientFilter').value.toLowerCase();
+            const therapistFilter = document.getElementById('therapistFilter').value;
+            const frequentOnly = document.getElementById('frequentOnly').checked;
+            const firstVisitOnly = document.getElementById('firstVisitOnly').checked;
+
+            if (!searchTerm && !therapistFilter && !frequentOnly && !firstVisitOnly) {
+                filteredData = null;
+                createTable();
+                return;
+            }
+
+            let filteredPatients = ptData.patients;
+
+            // 이름 필터
+            if (searchTerm) {
+                filteredPatients = filteredPatients.filter(patient =>
+                    patient.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            // 치료사 필터
+            if (therapistFilter) {
+                filteredPatients = filteredPatients.filter(patient => {
+                    const visits = ptData.matrix[patient] || {};
+                    return Object.values(visits).some(visit => visit.therapist === therapistFilter);
+                });
+            }
+
+            // 다회방문 필터
+            if (frequentOnly) {
+                filteredPatients = filteredPatients.filter(patient => {
+                    const visits = ptData.matrix[patient] || {};
+                    return Object.keys(visits).length >= 3;
+                });
+            }
+
+            // 첫내원 필터
+            if (firstVisitOnly) {
+                filteredPatients = filteredPatients.filter(patient => {
+                    const visits = ptData.matrix[patient] || {};
+                    return Object.values(visits).some(visit => visit.is_first);
+                });
+            }
+
+            filteredData = {
+                patients: filteredPatients,
+                dates: ptData.dates
+            };
+
+            createTable();
+        }
+
+        // 환자 하이라이트
+        function highlightPatient(patientName) {
+            // 모든 하이라이트 제거
+            document.querySelectorAll('.patient-cell').forEach(cell => {
+                cell.style.backgroundColor = '';
+            });
+            document.querySelectorAll('.patient-row').forEach(row => {
+                row.style.backgroundColor = '';
+            });
+
+            // 선택된 환자 하이라이트
+            const cells = document.querySelectorAll('.patient-cell');
+            const rows = document.querySelectorAll('.patient-row');
+
+            cells.forEach((cell, index) => {
+                if (cell.textContent.trim() === patientName) {
+                    cell.style.backgroundColor = '#fffacd';
+                    if (rows[index]) {
+                        rows[index].style.backgroundColor = '#fffacd';
+                    }
+                }
+            });
+        }
+
+        // 키보드 네비게이션
+        document.addEventListener('keydown', function(e) {
+            const scrollAmount = 180;
+            const dataScroll = document.getElementById('dataScroll');
+
+            switch(e.key) {
+                case 'ArrowLeft':
+                    dataScroll.scrollLeft -= scrollAmount;
+                    e.preventDefault();
+                    break;
+                case 'ArrowRight':
+                    dataScroll.scrollLeft += scrollAmount;
+                    e.preventDefault();
+                    break;
+                case 'Home':
+                    dataScroll.scrollLeft = 0;
+                    e.preventDefault();
+                    break;
+                case 'End':
+                    dataScroll.scrollLeft = dataScroll.scrollWidth;
+                    e.preventDefault();
+                    break;
+            }
+        });
+
+        // 마우스 휠 가로 스크롤
+        document.getElementById('dataScroll').addEventListener('wheel', function(e) {
+            if (e.shiftKey) {
+                e.preventDefault();
+                this.scrollLeft += e.deltaY;
+            }
+        });
+
+        // 초기화
+        createTable();
+
+        console.log('✅ 실제 환자 매트릭스 로딩 완료!');
+        console.log(`📊 환자 ${ptData.patients.length}명, 날짜 ${ptData.dates.length}일, 다회방문 ${getFrequentPatients().length}명`);
+        console.log('🎮 사용법: 좌우 화살표로 스크롤, 환자명 클릭으로 하이라이트, 필터로 검색');
+    </script>
+</body>
+</html>

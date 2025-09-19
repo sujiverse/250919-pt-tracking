@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PT 추적 매트릭스 - 가로 무한 스크롤</title>
+    <style>
+        :root {
+            /* 치료사별 고유 색깔 */
+            --치료사1-bg: #FFE5E5;
+            --치료사1-border: #FF6B6B;
+            --치료사1-text: #C92A2A;
+            --치료사2-bg: #E5F3FF;
+            --치료사2-border: #4DABF7;
+            --치료사2-text: #1971C2;
+            --치료사3-bg: #E5FFE5;
+            --치료사3-border: #69DB7C;
+            --치료사3-text: #2F9E44;
+            --치료사4-bg: #FFF5E5;
+            --치료사4-border: #FFB366;
+            --치료사4-text: #E8590C;
+            --치료사5-bg: #F3E5FF;
+            --치료사5-border: #B197FC;
+            --치료사5-text: #7950F2;
+            --치료사6-bg: #E5FFFF;
+            --치료사6-border: #66D9EF;
+            --치료사6-text: #0CA678;
+            --치료사7-bg: #FFFFE5;
+            --치료사7-border: #FFE066;
+            --치료사7-text: #E67E22;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .matrix-wrapper {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .matrix-container {
+            display: flex;
+            height: 100%;
+        }
+
+        /* 환자명 고정 열 */
+        .patient-column {
+            width: 150px;
+            background: white;
+            border-right: 3px solid #ddd;
+            z-index: 10;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .patient-header {
+            height: 60px;
+            background: #343a40;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .patient-cell {
+            height: 80px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            font-weight: 600;
+            color: #495057;
+            position: relative;
+        }
+
+        .patient-cell:hover {
+            background: #f8f9fa;
+        }
+
+        .patient-cell.first-visit {
+            border-left: 4px solid #28a745;
+        }
+
+        /* 데이터 스크롤 영역 */
+        .data-scroll {
+            flex: 1;
+            overflow-x: auto;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #6c757d #e9ecef;
+        }
+
+        .data-scroll::-webkit-scrollbar {
+            height: 12px;
+            width: 12px;
+        }
+
+        .data-scroll::-webkit-scrollbar-track {
+            background: #e9ecef;
+        }
+
+        .data-scroll::-webkit-scrollbar-thumb {
+            background: #6c757d;
+            border-radius: 6px;
+        }
+
+        .data-scroll::-webkit-scrollbar-thumb:hover {
+            background: #495057;
+        }
+
+        .data-grid {
+            display: inline-block;
+            min-width: fit-content;
+        }
+
+        /* 날짜 헤더 */
+        .date-header {
+            display: flex;
+            height: 60px;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            background: white;
+            border-bottom: 3px solid #ddd;
+        }
+
+        .date-cell {
+            width: 120px;
+            min-width: 120px;
+            border-right: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            font-weight: bold;
+            font-size: 14px;
+            color: #495057;
+        }
+
+        .date-cell:hover {
+            background: #e9ecef;
+        }
+
+        /* 환자별 데이터 행 */
+        .patient-row {
+            display: flex;
+            height: 80px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .treatment-cell {
+            width: 120px;
+            min-width: 120px;
+            border-right: 1px solid #e9ecef;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .treatment-cell:hover {
+            transform: scale(1.02);
+            z-index: 2;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .treatment-cell.empty {
+            background: #ffffff;
+        }
+
+        .treatment-cell.empty:hover {
+            background: #f8f9fa;
+        }
+
+        /* 치료사별 배경 색깔 */
+        .treatment-cell.therapist-치료사1 {
+            background: var(--치료사1-bg);
+            border: 2px solid var(--치료사1-border);
+            color: var(--치료사1-text);
+        }
+
+        .treatment-cell.therapist-치료사2 {
+            background: var(--치료사2-bg);
+            border: 2px solid var(--치료사2-border);
+            color: var(--치료사2-text);
+        }
+
+        .treatment-cell.therapist-치료사3 {
+            background: var(--치료사3-bg);
+            border: 2px solid var(--치료사3-border);
+            color: var(--치료사3-text);
+        }
+
+        .treatment-cell.therapist-치료사4 {
+            background: var(--치료사4-bg);
+            border: 2px solid var(--치료사4-border);
+            color: var(--치료사4-text);
+        }
+
+        .treatment-cell.therapist-치료사5 {
+            background: var(--치료사5-bg);
+            border: 2px solid var(--치료사5-border);
+            color: var(--치료사5-text);
+        }
+
+        .treatment-cell.therapist-치료사6 {
+            background: var(--치료사6-bg);
+            border: 2px solid var(--치료사6-border);
+            color: var(--치료사6-text);
+        }
+
+        .treatment-cell.therapist-치료사7 {
+            background: var(--치료사7-bg);
+            border: 2px solid var(--치료사7-border);
+            color: var(--치료사7-text);
+        }
+
+        .treatment-text {
+            font-weight: bold;
+            font-size: 13px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .therapist-name {
+            font-size: 10px;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        .first-visit-star {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            color: #ffc107;
+            font-size: 16px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        /* 범례 */
+        .legend {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 100;
+        }
+
+        .legend h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 15px;
+            margin-right: 8px;
+            border-radius: 3px;
+            border: 1px solid #ddd;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .patient-column {
+                width: 100px;
+            }
+
+            .date-cell, .treatment-cell {
+                width: 100px;
+                min-width: 100px;
+            }
+
+            .treatment-text {
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 PT 추적 매트릭스</h1>
+            <div class="subtitle">환자별 치료 현황 • 가로 무한 스크롤 • 2025.06~08</div>
+        </div>
+
+        <div class="matrix-wrapper">
+            <div class="matrix-container">
+                <!-- 환자명 고정 열 -->
+                <div class="patient-column">
+                    <div class="patient-header">환자명</div>
+                    <div id="patient-list">
+                        <!-- JavaScript로 동적 생성 -->
+                    </div>
+                </div>
+
+                <!-- 데이터 스크롤 영역 -->
+                <div class="data-scroll" id="dataScroll">
+                    <div class="data-grid">
+                        <!-- 날짜 헤더 -->
+                        <div class="date-header" id="dateHeader">
+                            <!-- JavaScript로 동적 생성 -->
+                        </div>
+
+                        <!-- 환자별 데이터 행들 -->
+                        <div id="patientRows">
+                            <!-- JavaScript로 동적 생성 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 치료사별 색깔 범례 -->
+        <div class="legend">
+            <h3>👩‍⚕️ 치료사</h3>
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--치료사1-bg); border-color: var(--치료사1-border);"></div>
+                치료사1
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--치료사2-bg); border-color: var(--치료사2-border);"></div>
+                치료사2
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--치료사3-bg); border-color: var(--치료사3-border);"></div>
+                치료사3
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--치료사4-bg); border-color: var(--치료사4-border);"></div>
+                치료사4
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--치료사5-bg); border-color: var(--치료사5-border);"></div>
+                치료사5
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--치료사6-bg); border-color: var(--치료사6-border);"></div>
+                치료사6
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--치료사7-bg); border-color: var(--치료사7-border);"></div>
+                치료사7
+            </div>
+            <div style="margin-top: 10px; font-size: 11px; color: #6c757d;">
+                ⭐ = 첫내원<br>
+                D.3/10(4) = D코스, 10회 중 3차, 올해 4번째
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 샘플 데이터 생성
+        const sampleData = generateSampleData();
+
+        // DOM 요소들
+        const patientList = document.getElementById('patient-list');
+        const dateHeader = document.getElementById('dateHeader');
+        const patientRows = document.getElementById('patientRows');
+        const dataScroll = document.getElementById('dataScroll');
+
+        // 화면 렌더링
+        renderMatrix(sampleData);
+
+        function generateSampleData() {
+            const therapists = ['치료사1', '치료사2', '치료사3', '치료사4', '치료사5', '치료사6', '치료사7'];
+            const courses = ['A', 'B', 'C', 'D', 'E'];
+            const patients = [
+                '환자101A', '환자102A', '환자103A', '환자104A', '환자105A', '환자106A',
+                '환자107A', '환자108A', '환자109A', '환자110A', '환자101B', '환자102B',
+                '환자103B', '환자104B', '환자105B', '환자106B', '환자107B', '환자108B'
+            ];
+
+            // 날짜 생성 (2025.06.01부터 90일)
+            const startDate = new Date(2025, 5, 1); // 2025년 6월 1일
+            const dates = [];
+            for (let i = 0; i < 90; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                dates.push(String(date.getMonth() + 1).padStart(2, '0') + '/' +
+                           String(date.getDate()).padStart(2, '0'));
+            }
+
+            // 매트릭스 데이터 생성
+            const matrix = {};
+            patients.forEach(patient => {
+                matrix[patient] = {};
+
+                // 각 환자마다 랜덤한 치료 기록 생성
+                const visitCount = Math.floor(Math.random() * 8) + 3; // 3-10회
+                const visitDates = [];
+
+                for (let i = 0; i < visitCount; i++) {
+                    const randomDate = dates[Math.floor(Math.random() * dates.length)];
+                    if (!visitDates.includes(randomDate)) {
+                        visitDates.push(randomDate);
+                    }
+                }
+
+                visitDates.sort().forEach((date, index) => {
+                    const therapist = therapists[Math.floor(Math.random() * therapists.length)];
+                    const course = courses[Math.floor(Math.random() * courses.length)];
+                    const packageTotal = [5, 10, 15, 20][Math.floor(Math.random() * 4)];
+                    const packageCurrent = Math.min(index + 1, packageTotal);
+                    const yearlyVisit = index + 1;
+
+                    matrix[patient][date] = {
+                        text: `${course}.${packageCurrent}/${packageTotal}(${yearlyVisit})`,
+                        therapist: therapist,
+                        course: course,
+                        isFirstVisit: index === 0
+                    };
+                });
+            });
+
+            return {
+                patients: patients,
+                dates: dates,
+                matrix: matrix
+            };
+        }
+
+        function renderMatrix(data) {
+            // 환자 목록 렌더링
+            patientList.innerHTML = data.patients.map(patient => `
+                <div class="patient-cell ${data.matrix[patient] && Object.values(data.matrix[patient]).some(v => v.isFirstVisit) ? 'first-visit' : ''}">
+                    ${patient}
+                </div>
+            `).join('');
+
+            // 날짜 헤더 렌더링
+            dateHeader.innerHTML = data.dates.map(date => `
+                <div class="date-cell">${date}</div>
+            `).join('');
+
+            // 환자별 데이터 행 렌더링
+            patientRows.innerHTML = data.patients.map(patient => {
+                const rowCells = data.dates.map(date => {
+                    const treatment = data.matrix[patient][date];
+                    if (treatment) {
+                        return `
+                            <div class="treatment-cell therapist-${treatment.therapist}"
+                                 title="${patient} - ${date} - ${treatment.text} (${treatment.therapist})">
+                                ${treatment.isFirstVisit ? '<div class="first-visit-star">⭐</div>' : ''}
+                                <div class="treatment-text">${treatment.text}</div>
+                                <div class="therapist-name">[${treatment.therapist}]</div>
+                            </div>
+                        `;
+                    } else {
+                        return `<div class="treatment-cell empty"></div>`;
+                    }
+                }).join('');
+
+                return `<div class="patient-row">${rowCells}</div>`;
+            }).join('');
+        }
+
+        // 키보드 네비게이션
+        document.addEventListener('keydown', function(e) {
+            const scrollAmount = 240; // 2셀 분량
+
+            switch(e.key) {
+                case 'ArrowLeft':
+                    dataScroll.scrollLeft -= scrollAmount;
+                    e.preventDefault();
+                    break;
+                case 'ArrowRight':
+                    dataScroll.scrollLeft += scrollAmount;
+                    e.preventDefault();
+                    break;
+                case 'Home':
+                    dataScroll.scrollLeft = 0;
+                    e.preventDefault();
+                    break;
+                case 'End':
+                    dataScroll.scrollLeft = dataScroll.scrollWidth;
+                    e.preventDefault();
+                    break;
+            }
+        });
+
+        // 마우스 휠 가로 스크롤
+        dataScroll.addEventListener('wheel', function(e) {
+            if (e.shiftKey || e.deltaX !== 0) {
+                e.preventDefault();
+                dataScroll.scrollLeft += e.deltaY || e.deltaX;
+            }
+        });
+
+        console.log('🏥 PT 추적 매트릭스가 로드되었습니다!');
+        console.log('⌨️  좌/우 화살표: 스크롤 | Shift+휠: 가로스크롤 | Home/End: 처음/끝');
+    </script>
+</body>
+</html>
