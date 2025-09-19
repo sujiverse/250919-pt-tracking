@@ -1,6 +1,16 @@
-# 물리치료 환자 스케줄 매트릭스
+# 📋 물리치료 환자 스케줄 매트릭스
 
 환자별 치료 스케줄을 매트릭스 형태로 시각화하는 웹 애플리케이션입니다.
+
+## 🚀 바로 사용하기
+
+**GitHub Pages 배포 링크:**
+
+### 메인 매트릭스 뷰들
+- **📊 [메인 스케줄 매트릭스](https://sujiverse.github.io/250919-pt-tracking/patient-schedule-matrix.html)** ⭐ 추천
+- **📈 [실시간 환자 매트릭스](https://sujiverse.github.io/250919-pt-tracking/real-patient-matrix.html)**
+- **📁 [Excel 스타일 매트릭스](https://sujiverse.github.io/250919-pt-tracking/excel-style-matrix.html)**
+- **⚡ [간단한 매트릭스](https://sujiverse.github.io/250919-pt-tracking/simple-pt-matrix.html)**
 
 ## 주요 기능
 
@@ -8,25 +18,37 @@
 - 📅 월별 필터링
 - 🔍 환자 검색
 - 🎨 코스별 색상 구분
-- 📱 반응형 디자인
+- 📱 반응형 디자인 (모바일 지원)
+
+## 🔒 개인정보 보호
+
+**모든 환자 정보는 가명처리되었습니다:**
+- ✅ 실제 환자 이름 → 환자A, 환자B, 환자101, 환자201...
+- ✅ 실제 치료사 이름 → 치료사1, 치료사2, 치료사A, 치료사B...
+- ✅ 총 100+ 개 실제 이름 가명처리 완료
 
 ## 파일 구조
 
-- `pt_data.js` - 환자 데이터 (JavaScript 형식)
-- `pt_data.json` - 환자 데이터 (JSON 형식)
-- `real_pt_data.json` - 가명처리된 실제 환자 데이터
-- `excel_format_data.json` - Excel 형식 데이터
-- `*.html` - 다양한 매트릭스 뷰 페이지
-
-## 개인정보 보호
-
-모든 환자 정보는 가명처리되었습니다:
-- 실제 환자 이름 → 환자A, 환자B, 환자C...
-- 실제 치료사 이름 → 치료사A, 치료사B, 치료사C...
-
-## 사용법
-
-HTML 파일을 브라우저에서 열어서 사용하세요:
-- `patient-schedule-matrix.html` - 메인 스케줄 매트릭스
+- `index.html` - 메인 페이지 (매트릭스 선택)
+- `patient-schedule-matrix.html` - 메인 스케줄 매트릭스 ⭐
 - `real-patient-matrix.html` - 실시간 환자 매트릭스
 - `excel-style-matrix.html` - Excel 스타일 매트릭스
+- `pt_data.js` / `pt_data.json` - 환자 데이터
+- `real_pt_data.json` - 가명처리된 실제 환자 데이터
+
+## 로컬 실행 방법
+
+```bash
+# 간단한 HTTP 서버 실행
+python -m http.server 8000
+
+# 브라우저에서 접속
+# http://localhost:8000
+```
+
+## 모바일 지원
+
+모든 매트릭스는 모바일에서도 최적화되어 작동합니다:
+- 터치 스크롤 지원
+- 반응형 레이아웃
+- 작은 화면 최적화
