@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📋 환자별 내원 코스표 (엑셀 스타일)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 12px 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            margin: 0 0 5px 0;
+            font-size: 20px;
+        }
+
+        .header .subtitle {
+            margin: 0 0 8px 0;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            font-size: 11px;
+        }
+
+        .controls {
+            background: white;
+            padding: 8px 15px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .filter-input, .filter-select {
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .container {
+            height: calc(100vh - 110px);
+            position: relative;
+            overflow: hidden;
+            background: white;
+        }
+
+        /* 엑셀 스타일 고정 영역들 */
+        .freeze-corner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 120px;
+            height: 50px;
+            background: #e9ecef;
+            border-right: 2px solid #6c757d;
+            border-bottom: 2px solid #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 11px;
+            z-index: 20;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .freeze-top {
+            position: absolute;
+            top: 0;
+            left: 120px;
+            right: 0;
+            height: 50px;
+            background: #e9ecef;
+            border-bottom: 2px solid #6c757d;
+            overflow-x: auto;
+            overflow-y: hidden;
+            z-index: 15;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .freeze-left {
+            position: absolute;
+            top: 50px;
+            left: 0;
+            width: 120px;
+            bottom: 0;
+            background: #f8f9fa;
+            border-right: 2px solid #6c757d;
+            overflow-x: hidden;
+            overflow-y: auto;
+            z-index: 15;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .data-area {
+            position: absolute;
+            top: 50px;
+            left: 120px;
+            right: 0;
+            bottom: 0;
+            overflow: auto;
+            z-index: 10;
+        }
+
+        /* 헤더 행 */
+        .date-header-row {
+            display: flex;
+            height: 50px;
+            min-width: fit-content;
+        }
+
+        .date-cell {
+            width: 100px;
+            min-width: 100px;
+            border-right: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #e9ecef;
+            font-weight: bold;
+            font-size: 10px;
+            color: #495057;
+            padding: 2px;
+        }
+
+        .date-main {
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .date-sub {
+            font-size: 8px;
+            color: #6c757d;
+        }
+
+        /* 환자 목록 (왼쪽 고정) */
+        .patient-list {
+            background: #f8f9fa;
+        }
+
+        .patient-cell {
+            height: 40px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            background: #f8f9fa;
+            font-size: 11px;
+            font-weight: 600;
+            color: #495057;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .patient-cell:hover {
+            background: #e9ecef;
+        }
+
+        .patient-cell.highlighted {
+            background: #fff3cd !important;
+            border-left: 3px solid #ffc107;
+        }
+
+        .patient-cell.frequent {
+            border-left: 3px solid #28a745;
+            background: #f8fff9;
+        }
+
+        .patient-name {
+            flex: 1;
+        }
+
+        .first-visit-indicator {
+            font-size: 8px;
+            color: #28a745;
+            margin-left: 4px;
+        }
+
+        /* 데이터 영역 */
+        .data-grid {
+            min-width: fit-content;
+        }
+
+        .data-row {
+            display: flex;
+            height: 40px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .data-cell {
+            width: 100px;
+            min-width: 100px;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            cursor: pointer;
+            position: relative;
+            padding: 2px;
+            background: white;
+        }
+
+        .data-cell:hover {
+            background: #f8f9fa;
+            box-shadow: 0 0 3px rgba(0,0,0,0.2);
+        }
+
+        .data-cell.empty {
+            background: #ffffff;
+        }
+
+        /* 치료 내용 스타일 */
+        .data-cell.has-content {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+        }
+
+        .data-cell.first-visit {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+        }
+
+        .data-cell.cancelled {
+            background: #ffebee;
+            border: 1px solid #f44336;
+            opacity: 0.7;
+        }
+
+        .data-cell.deferred {
+            background: #fff3e0;
+            border: 1px solid #ff9800;
+            opacity: 0.8;
+        }
+
+        /* 코스별 색깔 */
+        .course-A { border-left: 4px solid #e91e63; }
+        .course-B { border-left: 4px solid #2196f3; }
+        .course-C { border-left: 4px solid #4caf50; }
+        .course-D { border-left: 4px solid #ff9800; }
+        .course-H { border-left: 4px solid #9c27b0; }
+
+        .treatment-time {
+            font-weight: bold;
+            font-size: 10px;
+            color: #333;
+        }
+
+        .treatment-course {
+            font-size: 8px;
+            color: #666;
+            margin-top: 1px;
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            font-size: 7px;
+            padding: 1px 3px;
+            border-radius: 2px;
+            font-weight: bold;
+        }
+
+        .status-cancel {
+            background: #f44336;
+            color: white;
+        }
+
+        .status-defer {
+            background: #ff9800;
+            color: white;
+        }
+
+        .new-patient-badge {
+            position: absolute;
+            top: 1px;
+            right: 1px;
+            font-size: 7px;
+            background: #4caf50;
+            color: white;
+            padding: 1px 2px;
+            border-radius: 2px;
+        }
+
+        /* 범례 */
+        .legend {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            background: white;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-height: 300px;
+            overflow-y: auto;
+            width: 200px;
+        }
+
+        .legend h4 {
+            margin: 0 0 5px 0;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 3px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 2px 0;
+        }
+
+        .legend-color {
+            width: 15px;
+            height: 10px;
+            margin-right: 5px;
+            border-radius: 2px;
+        }
+
+        /* 동기화 스크롤 */
+        .sync-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: #6c757d #e9ecef;
+        }
+
+        .sync-scroll::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+
+        .sync-scroll::-webkit-scrollbar-track {
+            background: #e9ecef;
+        }
+
+        .sync-scroll::-webkit-scrollbar-thumb {
+            background: #6c757d;
+            border-radius: 4px;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .freeze-corner, .freeze-left { width: 80px; }
+            .freeze-top, .data-area { left: 80px; }
+            .date-cell, .data-cell { width: 80px; min-width: 80px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📋 환자별 내원 코스표</h1>
+        <p class="subtitle">엑셀 스타일 • 1행·1열 고정 (Freeze Panes) • 동명이인 구분</p>
+        <div class="stats">
+            <span id="patientCount">환자: 27명</span>
+            <span id="dateRange">기간: 07/21~09/22</span>
+            <span id="treatmentCount">치료: 60건</span>
+            <span id="firstVisitCount">첫내원: 9명</span>
+            <span id="statusCount">취소/미룸: 4건</span>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="filter-group">
+            <input type="text" id="patientFilter" class="filter-input" placeholder="환자명 검색..." onkeyup="filterData()">
+            <select id="courseFilter" class="filter-select" onchange="filterData()">
+                <option value="">전체 코스</option>
+                <option value="A">A 코스</option>
+                <option value="B">B 코스</option>
+                <option value="C">C 코스</option>
+                <option value="D">D 코스</option>
+                <option value="H">H 코스</option>
+            </select>
+            <select id="statusFilter" class="filter-select" onchange="filterData()">
+                <option value="">전체 상태</option>
+                <option value="first">첫내원만</option>
+                <option value="frequent">다회방문(3회+)</option>
+                <option value="cancelled">취소건만</option>
+                <option value="deferred">미룸건만</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label style="font-size: 11px; color: #666;">
+                Excel 스타일: 1행·1열 고정 | 스크롤 동기화 | 동명이인 구분
+            </label>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 고정 모서리 (환자명 헤더) -->
+        <div class="freeze-corner">
+            <div>환자명</div>
+            <div style="font-size: 8px; color: #666;">첫내원일</div>
+        </div>
+
+        <!-- 고정 상단 (날짜 헤더) -->
+        <div class="freeze-top sync-scroll" id="topScroll">
+            <div class="date-header-row" id="dateHeader">
+                <!-- JavaScript로 생성 -->
+            </div>
+        </div>
+
+        <!-- 고정 왼쪽 (환자 목록) -->
+        <div class="freeze-left sync-scroll" id="leftScroll">
+            <div class="patient-list" id="patientList">
+                <!-- JavaScript로 생성 -->
+            </div>
+        </div>
+
+        <!-- 메인 데이터 영역 -->
+        <div class="data-area sync-scroll" id="dataScroll">
+            <div class="data-grid" id="dataGrid">
+                <!-- JavaScript로 생성 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 범례 -->
+    <div class="legend">
+        <h4>📊 표시 방법</h4>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #e8f5e8; border: 1px solid #4caf50;"></div>
+            첫내원 (신환)
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #e3f2fd; border: 1px solid #2196f3;"></div>
+            일반 치료
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #ffebee; border: 1px solid #f44336;"></div>
+            [취소] 예약
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #fff3e0; border: 1px solid #ff9800;"></div>
+            [미룸] 예약
+        </div>
+
+        <h4>🎨 코스별 색깔</h4>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #e91e63;"></div>
+            A 코스
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #2196f3;"></div>
+            B 코스
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #4caf50;"></div>
+            C 코스
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #ff9800;"></div>
+            D 코스
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #9c27b0;"></div>
+            H 코스
+        </div>
+
+        <h4>👥 동명이인 구분</h4>
+        <div style="font-size: 9px; color: #666; line-height: 1.2;">
+            환자Y, 김영수B<br>
+            환자WA, 환자WB<br>
+            (환자명 끝 알파벳)
+        </div>
+    </div>
+
+    <script>
+        // 실제 데이터 (엑셀 형식)
+        const ptData = {
+            patients: [
+                "환자A", "환자B", "환자CB", "환자Y", "환자DX", "환자E", "환자Z",
+                "환자F", "환자GC", "환자H", "환자IB", "환자J", "환자KC", "환자LB",
+                "환자NB", "환자MB", "환자O", "환자PD", "환자Q", "환자RB", "환자SC",
+                "환자T", "환자VC", "환자WB", "환자U", "환자X", "환자AA"
+            ],
+            dates: [
+                "07/21", "07/24", "09/01", "09/04", "09/05", "09/06", "09/08",
+                "09/11", "09/12", "09/13", "09/14", "09/15", "09/16", "09/18",
+                "09/19", "09/20", "09/22"
+            ],
+            matrix: {
+                "환자A": {
+                    "09/06": { cell_value: "10:00 C", time: "10:00", course: "C", status: null, is_first: false }
+                },
+                "환자B": {
+                    "09/05": { cell_value: "11:30 C (신환)", time: "11:30", course: "C", status: null, is_first: true },
+                    "09/08": { cell_value: "18:00 C", time: "18:00", course: "C", status: null, is_first: false },
+                    "09/11": { cell_value: "11:00 C", time: "11:00", course: "C", status: null, is_first: false },
+                    "09/15": { cell_value: "18:30 C", time: "18:30", course: "C", status: null, is_first: false },
+                    "09/18": { cell_value: "12:00 C", time: "12:00", course: "C", status: null, is_first: false },
+                    "09/22": { cell_value: "19:30 C", time: "19:30", course: "C", status: null, is_first: false }
+                },
+                "환자CB": {
+                    "09/13": { cell_value: "13:00 C", time: "13:00", course: "C", status: null, is_first: false },
+                    "09/19": { cell_value: "18:30 C", time: "18:30", course: "C", status: null, is_first: false }
+                },
+                "환자Y": {
+                    "09/14": { cell_value: "[취소] 10:00 A", time: "10:00", course: "A", status: "취소", is_first: false }
+                },
+                "환자DX": {
+                    "09/01": { cell_value: "10:30 C", time: "10:30", course: "C", status: null, is_first: false },
+                    "09/05": { cell_value: "10:00 C", time: "10:00", course: "C", status: null, is_first: false },
+                    "09/22": { cell_value: "10:30 C", time: "10:30", course: "C", status: null, is_first: false }
+                },
+                "환자E": {
+                    "09/01": { cell_value: "19:00 B(C)", time: "19:00", course: "B(C)", status: null, is_first: false }
+                },
+                "환자Z": {
+                    "09/16": { cell_value: "[미룸] 14:30 C", time: "14:30", course: "C", status: "미룸", is_first: false }
+                },
+                "환자F": {
+                    "09/18": { cell_value: "19:00 D (신환)", time: "19:00", course: "D", status: null, is_first: true }
+                },
+                "환자GC": {
+                    "09/22": { cell_value: "17:30", time: "17:30", course: "", status: null, is_first: false }
+                },
+                "환자H": {
+                    "09/01": { cell_value: "11:30 C", time: "11:30", course: "C", status: null, is_first: false },
+                    "09/11": { cell_value: "11:40 C", time: "11:40", course: "C", status: null, is_first: false },
+                    "09/12": { cell_value: "11:30 C", time: "11:30", course: "C", status: null, is_first: false },
+                    "09/13": { cell_value: "09:00 C", time: "09:00", course: "C", status: null, is_first: false }
+                },
+                "환자IB": {
+                    "09/08": { cell_value: "19:20 C (신환)", time: "19:20", course: "C", status: null, is_first: true }
+                },
+                "환자J": {
+                    "09/04": { cell_value: "16:30 D", time: "16:30", course: "D", status: null, is_first: false },
+                    "09/11": { cell_value: "18:30 D", time: "18:30", course: "D", status: null, is_first: false }
+                },
+                "환자KC": {
+                    "07/24": { cell_value: "[미룸] 19:00 D(H)", time: "19:00", course: "D(H)", status: "미룸", is_first: false },
+                    "09/13": { cell_value: "10:00 D(H)", time: "10:00", course: "D(H)", status: null, is_first: false },
+                    "09/15": { cell_value: "18:40 D(H)", time: "18:40", course: "D(H)", status: null, is_first: false },
+                    "09/22": { cell_value: "18:30 D(H) (신환)", time: "18:30", course: "D(H)", status: null, is_first: true }
+                },
+                "환자LB": {
+                    "09/13": { cell_value: "11:00 A", time: "11:00", course: "A", status: null, is_first: false },
+                    "09/20": { cell_value: "10:00 A", time: "10:00", course: "A", status: null, is_first: false }
+                },
+                "환자NB": {
+                    "09/18": { cell_value: "16:40 A", time: "16:40", course: "A", status: null, is_first: false }
+                },
+                "환자MB": {
+                    "09/08": { cell_value: "12:00 충격파15 (신환)", time: "12:00", course: "충격파15", status: null, is_first: true }
+                },
+                "환자O": {
+                    "09/12": { cell_value: "18:00 A", time: "18:00", course: "A", status: null, is_first: false },
+                    "09/13": { cell_value: "12:30 A", time: "12:30", course: "A", status: null, is_first: false },
+                    "09/15": { cell_value: "13:00 A", time: "13:00", course: "A", status: null, is_first: false },
+                    "09/19": { cell_value: "12:00 A", time: "12:00", course: "A", status: null, is_first: false }
+                },
+                "환자PD": {
+                    "09/11": { cell_value: "19:30 C (신환)", time: "19:30", course: "C", status: null, is_first: true },
+                    "09/12": { cell_value: "19:00 D", time: "19:00", course: "D", status: null, is_first: false }
+                },
+                "환자Q": {
+                    "09/18": { cell_value: "17:30 D", time: "17:30", course: "D", status: null, is_first: false }
+                },
+                "환자RB": {
+                    "09/04": { cell_value: "14:00 D (신환)", time: "14:00", course: "D", status: null, is_first: true },
+                    "09/12": { cell_value: "16:10 D", time: "16:10", course: "D", status: null, is_first: false },
+                    "09/13": { cell_value: "11:30 D", time: "11:30", course: "D", status: null, is_first: false },
+                    "09/18": { cell_value: "11:00 D", time: "11:00", course: "D", status: null, is_first: false },
+                    "09/22": { cell_value: "12:00 D", time: "12:00", course: "D", status: null, is_first: false }
+                },
+                "환자SC": {
+                    "09/15": { cell_value: "10:40 C(D)", time: "10:40", course: "C(D)", status: null, is_first: false },
+                    "09/22": { cell_value: "11:00 C(D)", time: "11:00", course: "C(D)", status: null, is_first: false }
+                },
+                "환자T": {
+                    "09/04": { cell_value: "19:00 C", time: "19:00", course: "C", status: null, is_first: false }
+                },
+                "환자VC": {
+                    "09/01": { cell_value: "12:30 D", time: "12:30", course: "D", status: null, is_first: false },
+                    "09/06": { cell_value: "13:00 D", time: "13:00", course: "D", status: null, is_first: false },
+                    "09/11": { cell_value: "10:00 C", time: "10:00", course: "C", status: null, is_first: false },
+                    "09/15": { cell_value: "12:00 C(D) (신환)", time: "12:00", course: "C(D)", status: null, is_first: true }
+                },
+                "환자WB": {
+                    "09/01": { cell_value: "15:00 B(C)", time: "15:00", course: "B(C)", status: null, is_first: false },
+                    "09/04": { cell_value: "15:00 C(D)", time: "15:00", course: "C(D)", status: null, is_first: false },
+                    "09/15": { cell_value: "16:00 C(D)", time: "16:00", course: "C(D)", status: null, is_first: false },
+                    "09/18": { cell_value: "16:00 C(D)", time: "16:00", course: "C(D)", status: null, is_first: false },
+                    "09/19": { cell_value: "16:00 C(D)", time: "16:00", course: "C(D)", status: null, is_first: false },
+                    "09/22": { cell_value: "16:00 C(D)", time: "16:00", course: "C(D)", status: null, is_first: false }
+                },
+                "환자U": {
+                    "09/01": { cell_value: "19:30 D", time: "19:30", course: "D", status: null, is_first: false }
+                },
+                "환자X": {
+                    "09/04": { cell_value: "16:00 D", time: "16:00", course: "D", status: null, is_first: false }
+                },
+                "환자AA": {
+                    "07/21": { cell_value: "[취소] 11:50 C", time: "11:50", course: "C", status: "취소", is_first: false }
+                }
+            },
+            first_visits: {
+                "환자B": "09/05",
+                "환자F": "09/18",
+                "환자IB": "09/08",
+                "환자KC": "09/22",
+                "환자MB": "09/08",
+                "환자PD": "09/11",
+                "환자RB": "09/04",
+                "환자VC": "09/15"
+            }
+        };
+
+        let filteredData = null;
+
+        // 다회 방문 환자 식별
+        function getFrequentPatients() {
+            const frequent = [];
+            for (const patient in ptData.matrix) {
+                if (Object.keys(ptData.matrix[patient]).length >= 3) {
+                    frequent.push(patient);
+                }
+            }
+            return frequent;
+        }
+
+        // 날짜 헤더 생성
+        function createDateHeader() {
+            const dateHeader = document.getElementById('dateHeader');
+            const currentData = filteredData || ptData;
+
+            dateHeader.innerHTML = currentData.dates.map(date => {
+                const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+                const dateObj = new Date(`2025-${date.replace('/', '-')}`);
+                const dayName = dayNames[dateObj.getDay()];
+
+                return `
+                    <div class="date-cell">
+                        <div class="date-main">${date}</div>
+                        <div class="date-sub">${dayName}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 환자 목록 생성
+        function createPatientList() {
+            const patientList = document.getElementById('patientList');
+            const currentData = filteredData || ptData;
+            const frequentPatients = getFrequentPatients();
+
+            patientList.innerHTML = currentData.patients.map(patient => {
+                const isFrequent = frequentPatients.includes(patient);
+                const firstVisitDate = ptData.first_visits[patient] || '';
+
+                return `
+                    <div class="patient-cell ${isFrequent ? 'frequent' : ''}" onclick="highlightPatient('${patient}')">
+                        <div class="patient-name">${patient}</div>
+                        ${firstVisitDate ? `<div class="first-visit-indicator">${firstVisitDate}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 데이터 그리드 생성
+        function createDataGrid() {
+            const dataGrid = document.getElementById('dataGrid');
+            const currentData = filteredData || ptData;
+
+            dataGrid.innerHTML = currentData.patients.map(patient => {
+                const rowCells = currentData.dates.map(date => {
+                    const treatment = ptData.matrix[patient] && ptData.matrix[patient][date];
+
+                    if (treatment) {
+                        let cellClass = 'data-cell has-content';
+
+                        // 상태별 클래스
+                        if (treatment.status === '취소') {
+                            cellClass += ' cancelled';
+                        } else if (treatment.status === '미룸') {
+                            cellClass += ' deferred';
+                        } else if (treatment.is_first) {
+                            cellClass += ' first-visit';
+                        }
+
+                        // 코스별 클래스
+                        if (treatment.course) {
+                            const courseCode = treatment.course.charAt(0);
+                            cellClass += ` course-${courseCode}`;
+                        }
+
+                        return `
+                            <div class="${cellClass}" title="${patient}\\n${date}\\n${treatment.cell_value}">
+                                ${treatment.status ? `<div class="status-badge status-${treatment.status === '취소' ? 'cancel' : 'defer'}">${treatment.status}</div>` : ''}
+                                ${treatment.is_first ? '<div class="new-patient-badge">신환</div>' : ''}
+                                <div class="treatment-time">${treatment.time}</div>
+                                <div class="treatment-course">${treatment.course}</div>
+                            </div>
+                        `;
+                    } else {
+                        return '<div class="data-cell empty"></div>';
+                    }
+                }).join('');
+
+                return `<div class="data-row">${rowCells}</div>`;
+            }).join('');
+        }
+
+        // 스크롤 동기화
+        function setupScrollSync() {
+            const topScroll = document.getElementById('topScroll');
+            const dataScroll = document.getElementById('dataScroll');
+            const leftScroll = document.getElementById('leftScroll');
+
+            // 가로 스크롤 동기화
+            topScroll.addEventListener('scroll', () => {
+                dataScroll.scrollLeft = topScroll.scrollLeft;
+            });
+
+            dataScroll.addEventListener('scroll', () => {
+                topScroll.scrollLeft = dataScroll.scrollLeft;
+                leftScroll.scrollTop = dataScroll.scrollTop;
+            });
+
+            // 세로 스크롤 동기화
+            leftScroll.addEventListener('scroll', () => {
+                dataScroll.scrollTop = leftScroll.scrollTop;
+            });
+        }
+
+        // 환자 하이라이트
+        function highlightPatient(patientName) {
+            // 모든 하이라이트 제거
+            document.querySelectorAll('.patient-cell').forEach(cell => {
+                cell.classList.remove('highlighted');
+            });
+
+            // 선택된 환자 하이라이트
+            document.querySelectorAll('.patient-cell').forEach(cell => {
+                if (cell.querySelector('.patient-name').textContent === patientName) {
+                    cell.classList.add('highlighted');
+                }
+            });
+        }
+
+        // 필터링
+        function filterData() {
+            const patientFilter = document.getElementById('patientFilter').value.toLowerCase();
+            const courseFilter = document.getElementById('courseFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            if (!patientFilter && !courseFilter && !statusFilter) {
+                filteredData = null;
+                renderAll();
+                return;
+            }
+
+            let filteredPatients = ptData.patients;
+
+            // 환자명 필터
+            if (patientFilter) {
+                filteredPatients = filteredPatients.filter(patient =>
+                    patient.toLowerCase().includes(patientFilter)
+                );
+            }
+
+            // 코스 필터
+            if (courseFilter) {
+                filteredPatients = filteredPatients.filter(patient => {
+                    const visits = ptData.matrix[patient] || {};
+                    return Object.values(visits).some(visit =>
+                        visit.course && visit.course.includes(courseFilter)
+                    );
+                });
+            }
+
+            // 상태 필터
+            if (statusFilter) {
+                const frequentPatients = getFrequentPatients();
+
+                filteredPatients = filteredPatients.filter(patient => {
+                    const visits = ptData.matrix[patient] || {};
+
+                    switch (statusFilter) {
+                        case 'first':
+                            return Object.values(visits).some(visit => visit.is_first);
+                        case 'frequent':
+                            return frequentPatients.includes(patient);
+                        case 'cancelled':
+                            return Object.values(visits).some(visit => visit.status === '취소');
+                        case 'deferred':
+                            return Object.values(visits).some(visit => visit.status === '미룸');
+                        default:
+                            return true;
+                    }
+                });
+            }
+
+            filteredData = {
+                patients: filteredPatients,
+                dates: ptData.dates
+            };
+
+            renderAll();
+        }
+
+        // 전체 렌더링
+        function renderAll() {
+            createDateHeader();
+            createPatientList();
+            createDataGrid();
+        }
+
+        // 키보드 네비게이션
+        document.addEventListener('keydown', function(e) {
+            const dataScroll = document.getElementById('dataScroll');
+            const scrollAmount = 200;
+
+            switch(e.key) {
+                case 'ArrowLeft':
+                    dataScroll.scrollLeft -= scrollAmount;
+                    e.preventDefault();
+                    break;
+                case 'ArrowRight':
+                    dataScroll.scrollLeft += scrollAmount;
+                    e.preventDefault();
+                    break;
+                case 'Home':
+                    dataScroll.scrollLeft = 0;
+                    e.preventDefault();
+                    break;
+                case 'End':
+                    dataScroll.scrollLeft = dataScroll.scrollWidth;
+                    e.preventDefault();
+                    break;
+            }
+        });
+
+        // 초기화
+        renderAll();
+        setupScrollSync();
+
+        console.log('✅ 엑셀 스타일 환자 매트릭스 로딩 완료!');
+        console.log('📊 Excel Freeze Panes 구현: 1행·1열 고정');
+        console.log('🎮 좌우 화살표: 스크롤 | 환자명 클릭: 하이라이트 | 필터: 검색');
+    </script>
+</body>
+</html>

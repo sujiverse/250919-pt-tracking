@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(pip install:*)",
+      "Bash(start simple-pt-matrix.html)",
+      "Bash(start real-pt-matrix.html)",
+      "Bash(start final-pt-matrix.html)",
+      "Bash(start real-patient-matrix.html)",
+      "Bash(start patient-schedule-matrix.html)",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

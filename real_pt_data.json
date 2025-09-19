@@ -1,0 +1,556 @@
+{
+  "patients": [
+    "환자A",
+    "환자B",
+    "환자C",
+    "환자D",
+    "환자E",
+    "환자F",
+    "환자G",
+    "환자H",
+    "환자I",
+    "환자J",
+    "환자K",
+    "환자L",
+    "환자M",
+    "환자N",
+    "환자O",
+    "환자P",
+    "환자Q",
+    "환자R",
+    "환자S",
+    "환자T",
+    "환자U",
+    "환자V",
+    "환자W",
+    "환자X"
+  ],
+  "dates": [
+    "09/01/2025",
+    "09/04/2025",
+    "09/05/2025",
+    "09/06/2025",
+    "09/08/2025",
+    "09/11/2025",
+    "09/12/2025",
+    "09/13/2025",
+    "09/15/2025",
+    "09/18/2025",
+    "09/19/2025",
+    "09/20/2025",
+    "09/22/2025"
+  ],
+  "matrix": {
+    "환자D": {
+      "09/22/2025": {
+        "therapist": "특별치료사",
+        "time": "10:30",
+        "treatment": "C",
+        "course": "C",
+        "is_first": false,
+        "raw": "C.5"
+      },
+      "09/05/2025": {
+        "therapist": "특별치료사",
+        "time": "10:00",
+        "treatment": "C",
+        "course": "C",
+        "is_first": false,
+        "raw": "C.4"
+      },
+      "09/01/2025": {
+        "therapist": "특별치료사",
+        "time": "10:30",
+        "treatment": "C",
+        "course": "C",
+        "is_first": false,
+        "raw": "C.3"
+      }
+    },
+    "환자S": {
+      "09/22/2025": {
+        "therapist": "치료사C",
+        "time": "11:00",
+        "treatment": "C(D).4/10(4)",
+        "course": "C(D)",
+        "is_first": false,
+        "raw": "C(D).4/10(4)"
+      },
+      "09/15/2025": {
+        "therapist": "치료사C",
+        "time": "10:40",
+        "treatment": "C(D).3/10(3)",
+        "course": "C(D)",
+        "is_first": false,
+        "raw": "C(D).3/10(3)"
+      }
+    },
+    "환자W": {
+      "09/22/2025": {
+        "therapist": "치료사B",
+        "time": "4:00",
+        "treatment": "C(D).5/5(8)",
+        "course": "C(D)",
+        "is_first": false,
+        "raw": "C(D).5/5(8)"
+      },
+      "09/19/2025": {
+        "therapist": "치료사B",
+        "time": "4:00",
+        "treatment": "C(D).5/5(8)",
+        "course": "C(D)",
+        "is_first": false,
+        "raw": "C(D).5/5(8)"
+      },
+      "09/18/2025": {
+        "therapist": "치료사B",
+        "time": "4:00",
+        "treatment": "C(D).4/5(7)",
+        "course": "C(D)",
+        "is_first": false,
+        "raw": "C(D).4/5(7)"
+      },
+      "09/15/2025": {
+        "therapist": "치료사B",
+        "time": "4:00",
+        "treatment": "C(D).3/5(6)",
+        "course": "C(D)",
+        "is_first": false,
+        "raw": "C(D).3/5(6)"
+      },
+      "09/04/2025": {
+        "therapist": "치료사B",
+        "time": "3:00",
+        "treatment": "C(D).2/5(5)",
+        "course": "C(D)",
+        "is_first": false,
+        "raw": "C(D).2/5(5)"
+      },
+      "09/01/2025": {
+        "therapist": "치료사B",
+        "time": "3:00",
+        "treatment": "B(C)",
+        "course": "B(C)",
+        "is_first": false,
+        "raw": "B(C).4"
+      }
+    },
+    "환자G": {
+      "09/22/2025": {
+        "therapist": "치료사C",
+        "time": "5:30",
+        "treatment": "미상",
+        "course": "미상",
+        "is_first": false,
+        "raw": ""
+      }
+    },
+    "환자K": {
+      "09/22/2025": {
+        "therapist": "치료사C",
+        "time": "6:30",
+        "treatment": "D(H).1/10(23)",
+        "course": "D(H)",
+        "is_first": true,
+        "raw": "D(H).1/10(23)"
+      },
+      "09/15/2025": {
+        "therapist": "치료사C",
+        "time": "6:40",
+        "treatment": "D(H).10/10(22)",
+        "course": "D(H)",
+        "is_first": false,
+        "raw": "D(H).10/10(22)"
+      },
+      "09/13/2025": {
+        "therapist": "치료사C",
+        "time": "10:00",
+        "treatment": "D(H).9/10(21)",
+        "course": "D(H)",
+        "is_first": false,
+        "raw": "D(H).9/10(21)"
+      }
+    },
+    "환자B": {
+      "09/22/2025": {
+        "therapist": "미정",
+        "time": "7:30",
+        "treatment": "C.4/10(4)",
+        "course": "C",
+        "is_first": false,
+        "raw": "C.4/10(4)"
+      },
+      "09/18/2025": {
+        "therapist": "미정",
+        "time": "12:00",
+        "treatment": "C.5/10(5)",
+        "course": "C",
+        "is_first": false,
+        "raw": "C.5/10(5)"
+      },
+      "09/15/2025": {
+        "therapist": "미정",
+        "time": "6:30",
+        "treatment": "C.4/10(4)",
+        "course": "C",
+        "is_first": false,
+        "raw": "C.4/10(4)"
+      },
+      "09/11/2025": {
+        "therapist": "미정",
+        "time": "11:00",
+        "treatment": "C.3/10(3)",
+        "course": "C",
+        "is_first": false,
+        "raw": "C.3/10(3)"
+      },
+      "09/08/2025": {
+        "therapist": "미정",
+        "time": "6:00",
+        "treatment": "C.2/10(2)",
+        "course": "C",
+        "is_first": false,
+        "raw": "C.2/10(2)"
+      },
+      "09/05/2025": {
+        "therapist": "미정",
+        "time": "11:30",
+        "treatment": "C.1/10(1)",
+        "course": "C",
+        "is_first": true,
+        "raw": "C.1/10(1)"
+      }
+    },
+    "환자R": {
+      "09/22/2025": {
+        "therapist": "치료사B",
+        "time": "12:00",
+        "treatment": "D",
+        "course": "D",
+        "is_first": false,
+        "raw": "D."
+      },
+      "09/18/2025": {
+        "therapist": "치료사B",
+        "time": "11:00",
+        "treatment": "D",
+        "course": "D",
+        "is_first": false,
+        "raw": "D3/10(4)"
+      },
+      "09/13/2025": {
+        "therapist": "치료사B",
+        "time": "11:30",
+        "treatment": "D",
+        "course": "D",
+        "is_first": false,
+        "raw": "D.3"
+      },
+      "09/12/2025": {
+        "therapist": "치료사B",
+        "time": "4:10",
+        "treatment": "D",
+        "course": "D",
+        "is_first": false,
+        "raw": "D.2"
+      },
+      "09/04/2025": {
+        "therapist": "치료사B",
+        "time": "2:00",
+        "treatment": "D",
+        "course": "D",
+        "is_first": true,
+        "raw": "D.1"
+      }
+    },
+    "환자L": {
+      "09/20/2025": {
+        "therapist": "치료사B",
+        "time": "10:00",
+        "treatment": "A",
+        "course": "A",
+        "is_first": false,
+        "raw": "A.6"
+      },
+      "09/13/2025": {
+        "therapist": "치료사B",
+        "time": "11:00",
+        "treatment": "A",
+        "course": "A",
+        "is_first": false,
+        "raw": "A.5"
+      }
+    },
+    "환자O": {
+      "09/19/2025": {
+        "therapist": "미정",
+        "time": "12:00",
+        "treatment": "A",
+        "course": "A",
+        "is_first": false,
+        "raw": "A.25"
+      },
+      "09/15/2025": {
+        "therapist": "미정",
+        "time": "1:00",
+        "treatment": "A",
+        "course": "A",
+        "is_first": false,
+        "raw": "A.24"
+      },
+      "09/13/2025": {
+        "therapist": "미정",
+        "time": "12:30",
+        "treatment": "A",
+        "course": "A",
+        "is_first": false,
+        "raw": "A.23"
+      },
+      "09/12/2025": {
+        "therapist": "미정",
+        "time": "6:00",
+        "treatment": "A",
+        "course": "A",
+        "is_first": false,
+        "raw": "A.22"
+      }
+    },
+    "환자C": {
+      "09/19/2025": {
+        "therapist": "치료사B",
+        "time": "6:30",
+        "treatment": "C",
+        "course": "C",
+        "is_first": false,
+        "raw": "C.40"
+      },
+      "09/13/2025": {
+        "therapist": "치료사B",
+        "time": "1:00",
+        "treatment": "C",
+        "course": "C",
+        "is_first": false,
+        "raw": "C.38"
+      }
+    },
+    "환자N": {
+      "09/18/2025": {
+        "therapist": "치료사B",
+        "time": "4:40",
+        "treatment": "A",
+        "course": "A",
+        "is_first": false,
+        "raw": "A.6"
+      }
+    },
+    "환자Q": {
+      "09/18/2025": {
+        "therapist": "미정",
+        "time": "5:30",
+        "treatment": "D",
+        "course": "D",
+        "is_first": false,
+        "raw": "D.6"
+      }
+    },
+    "환자F": {
+      "09/18/2025": {
+        "therapist": "미정",
+        "time": "7:00",
+        "treatment": "D",
+        "course": "D",
+        "is_first": true,
+        "raw": "D.1"
+      }
+    },
+    "환자V": {
+      "09/15/2025": {
+        "therapist": "치료사C",
+        "time": "12:00",
+        "treatment": "C(D).1/10(17)",
+        "course": "C(D)",
+        "is_first": true,
+        "raw": "C(D).1/10(17)"
+      },
+      "09/11/2025": {
+        "therapist": "치료사C",
+        "time": "10:00",
+        "treatment": "C",
+        "course": "C",
+        "is_first": false,
+        "raw": "C.15"
+      },
+      "09/06/2025": {
+        "therapist": "치료사C",
+        "time": "1:00",
+        "treatment": "D",
+        "course": "D",
+        "is_first": false,
+        "raw": "D.13"
+      },
+      "09/01/2025": {
+        "therapist": "치료사C",
+        "time": "12:30",
+        "treatment": "D",
+        "course": "D",
+        "is_first": false,
+        "raw": "D.12"
+      }
+    },
+    "환자H": {
+      "09/13/2025": {
+        "therapist": "미정",
+        "time": "9:00",
+        "treatment": "C.9/10(40)",
+        "course": "C",
+        "is_first": false,
+        "raw": "C.9/10(40)"
+      },
+      "09/12/2025": {
+        "therapist": "미정",
+        "time": "11:30",
+        "treatment": "C.8/10(39)",
+        "course": "C",
+        "is_first": false,
+        "raw": "C.8/10(39)"
+      },
+      "09/11/2025": {
+        "therapist": "미정",
+        "time": "11:40",
+        "treatment": "C.7/10(38)",
+        "course": "C",
+        "is_first": false,
+        "raw": "C.7/10(38)"
+      },
+      "09/01/2025": {
+        "therapist": "미정",
+        "time": "11:30",
+        "treatment": "C.6/10(37)",
+        "course": "C",
+        "is_first": false,
+        "raw": "C.6/10(37)"
+      }
+    },
+    "환자P": {
+      "09/12/2025": {
+        "therapist": "치료사D",
+        "time": "7:00",
+        "treatment": "D",
+        "course": "D",
+        "is_first": false,
+        "raw": "D.2"
+      },
+      "09/11/2025": {
+        "therapist": "치료사D",
+        "time": "7:30",
+        "treatment": "C",
+        "course": "C",
+        "is_first": true,
+        "raw": "C.1"
+      }
+    },
+    "환자J": {
+      "09/11/2025": {
+        "therapist": "미정",
+        "time": "6:30",
+        "treatment": "D",
+        "course": "D",
+        "is_first": false,
+        "raw": "D.11"
+      },
+      "09/04/2025": {
+        "therapist": "미정",
+        "time": "4:30",
+        "treatment": "D",
+        "course": "D",
+        "is_first": false,
+        "raw": "D.V"
+      }
+    },
+    "환자M": {
+      "09/08/2025": {
+        "therapist": "치료사B",
+        "time": "12:00",
+        "treatment": "미상",
+        "course": "미상",
+        "is_first": false,
+        "raw": "충격파15.1"
+      }
+    },
+    "환자I": {
+      "09/08/2025": {
+        "therapist": "치료사B",
+        "time": "7:20",
+        "treatment": "C",
+        "course": "C",
+        "is_first": true,
+        "raw": "C.1"
+      }
+    },
+    "환자A": {
+      "09/06/2025": {
+        "therapist": "미정",
+        "time": "10:00",
+        "treatment": "C.8/10(8)",
+        "course": "C",
+        "is_first": false,
+        "raw": "C.8/10(8)"
+      }
+    },
+    "환자X": {
+      "09/04/2025": {
+        "therapist": "미정",
+        "time": "4:00",
+        "treatment": "D",
+        "course": "D",
+        "is_first": false,
+        "raw": "D.30"
+      }
+    },
+    "환자T": {
+      "09/04/2025": {
+        "therapist": "미정",
+        "time": "7:00",
+        "treatment": "C",
+        "course": "C",
+        "is_first": false,
+        "raw": "C.4"
+      }
+    },
+    "환자E": {
+      "09/01/2025": {
+        "therapist": "미정",
+        "time": "7:00",
+        "treatment": "B(C).6/10(7)",
+        "course": "B(C)",
+        "is_first": false,
+        "raw": "B(C).6/10(7)"
+      }
+    },
+    "환자U": {
+      "09/01/2025": {
+        "therapist": "미정",
+        "time": "7:30",
+        "treatment": "D",
+        "course": "D",
+        "is_first": false,
+        "raw": "D.41"
+      }
+    }
+  },
+  "therapist_mapping": {
+    "A": "치료사A",
+    "B": "치료사B",
+    "C": "치료사C",
+    "D": "치료사D",
+    "E": "치료사E",
+    "F": "치료사F",
+    "G": "치료사G",
+    "H": "치료사H",
+    "I": "치료사I",
+    "J": "치료사J",
+    "K": "치료사K",
+    "X": "특별치료사",
+    "미상": "미정"
+  }
+}

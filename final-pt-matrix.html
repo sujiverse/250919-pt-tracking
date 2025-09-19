@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏥 실제 PT 추적 매트릭스 (2025.06~09)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            margin: 0 0 5px 0;
+            font-size: 22px;
+        }
+
+        .header .subtitle {
+            margin: 0 0 10px 0;
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            font-size: 11px;
+        }
+
+        .controls {
+            background: white;
+            padding: 8px 15px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .filter-input {
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            width: 150px;
+        }
+
+        .container {
+            height: calc(100vh - 120px);
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* 환자명 고정 열 */
+        .patient-column {
+            width: 120px;
+            background: white;
+            border-right: 2px solid #ddd;
+            overflow-y: auto;
+            z-index: 10;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+        }
+
+        .patient-header {
+            height: 40px;
+            background: #343a40;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 11px;
+            position: sticky;
+            top: 0;
+            z-index: 15;
+        }
+
+        .patient-cell {
+            height: 35px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            font-size: 10px;
+            font-weight: 600;
+            color: #495057;
+            cursor: pointer;
+        }
+
+        .patient-cell:hover {
+            background: #f8f9fa;
+        }
+
+        /* 데이터 스크롤 영역 */
+        .data-scroll {
+            flex: 1;
+            overflow: auto;
+        }
+
+        .data-grid {
+            display: inline-block;
+            min-width: fit-content;
+        }
+
+        /* 날짜 헤더 */
+        .date-header {
+            display: flex;
+            height: 40px;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            background: white;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .date-cell {
+            width: 80px;
+            min-width: 80px;
+            border-right: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            font-weight: bold;
+            font-size: 10px;
+            color: #495057;
+        }
+
+        .date-cell:hover {
+            background: #e9ecef;
+        }
+
+        /* 환자별 데이터 행 */
+        .patient-row {
+            display: flex;
+            height: 35px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .treatment-cell {
+            width: 80px;
+            min-width: 80px;
+            border-right: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .treatment-cell:hover {
+            transform: scale(1.05);
+            z-index: 3;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .treatment-cell.empty {
+            background: #ffffff;
+        }
+
+        .treatment-cell.empty:hover {
+            background: #f8f9fa;
+        }
+
+        /* 치료사별 색깔 */
+        .신환 { background: #ffe5e5; color: #c92a2a; font-weight: bold; }
+        .강수지 { background: #e5f3ff; color: #1971c2; font-weight: bold; }
+        .김민선 { background: #e5ffe5; color: #2f9e44; font-weight: bold; }
+        .양지영 { background: #fff5e5; color: #e8590c; font-weight: bold; }
+        .안진경 { background: #f3e5ff; color: #7950f2; font-weight: bold; }
+        .비고 { background: #e5ffff; color: #0ca678; font-weight: bold; }
+
+        .first-visit::after {
+            content: " ⭐";
+            color: #ffc107;
+            font-size: 10px;
+        }
+
+        .treatment-text {
+            text-align: center;
+            line-height: 1.1;
+        }
+
+        /* 범례 */
+        .legend {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            background: white;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .legend div {
+            margin: 1px 0;
+            padding: 1px 6px;
+            border-radius: 2px;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            font-size: 16px;
+            color: #666;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .patient-column { width: 80px; }
+            .date-cell, .treatment-cell { width: 60px; min-width: 60px; }
+            .filter-input { width: 100px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏥 실제 PT 추적 매트릭스</h1>
+        <p class="subtitle">2025년 6월~9월 실제 예약 데이터 • 가로 무한 스크롤</p>
+        <div class="stats">
+            <span id="patientCount">환자: 50명</span>
+            <span id="dateRange">기간: 06/01~09/30</span>
+            <span id="treatmentCount">치료: 계산중...</span>
+            <span id="firstVisitCount">첫내원: 계산중...</span>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div>
+            <input type="text" id="patientFilter" class="filter-input" placeholder="환자명 검색..." onkeyup="filterPatients()">
+        </div>
+        <div>
+            <label>
+                <input type="checkbox" id="firstVisitOnly" onchange="filterPatients()"> 첫내원만 보기
+            </label>
+            <span style="margin-left: 15px; font-size: 11px; color: #666;">
+                좌우 화살표: 스크롤 | Shift+휠: 가로스크롤
+            </span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 환자명 고정 열 -->
+        <div class="patient-column">
+            <div class="patient-header">환자명</div>
+            <div id="patient-list">
+                <!-- JavaScript로 생성 -->
+            </div>
+        </div>
+
+        <!-- 데이터 스크롤 영역 -->
+        <div class="data-scroll" id="dataScroll">
+            <div class="data-grid">
+                <!-- 날짜 헤더 -->
+                <div class="date-header" id="dateHeader">
+                    <!-- JavaScript로 생성 -->
+                </div>
+
+                <!-- 환자별 데이터 행들 -->
+                <div id="patientRows">
+                    <!-- JavaScript로 생성 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 치료사별 색깔 범례 -->
+    <div class="legend">
+        <div><strong>👩‍⚕️ 치료사</strong></div>
+        <div class="신환">신환</div>
+        <div class="강수지">강수지</div>
+        <div class="김민선">김민선</div>
+        <div class="양지영">양지영</div>
+        <div class="안진경">안진경</div>
+        <div class="비고">비고</div>
+        <div style="margin-top: 5px; color: #666;">⭐ = 첫내원</div>
+    </div>
+
+    <script>
+        // 실제 엑셀 데이터 (JSON 의존성 제거)
+        const ptData = {
+  "patients": [
+    "가능하면",
+    "강병호",
+    "강창석",
+    "강창석치료사",
+    "강창석치료사환자",
+    "건강검진후",
+    "경과기록지",
+    "고승완",
+    "고주파",
+    "고주파데모",
+    "고주파만",
+    "고주파만먼저",
+    "고주파먼저",
+    "고주파열치료",
+    "공인인증서",
+    "곽동우",
+    "구현정B",
+    "권영준",
+    "권영준C",
+    "권윤구",
+    "금요일",
+    "금일만",
+    "김나현C",
+    "김남수",
+    "김덕희",
+    "김도원",
+    "김민선",
+    "김민순",
+    "김밥주문",
+    "김보민",
+    "김성경",
+    "김소정",
+    "김수경",
+    "김승민C",
+    "김영진",
+    "김예린",
+    "김요한C",
+    "김윤겸",
+    "김윤정",
+    "김의주",
+    "김인태",
+    "김장수",
+    "김장헌",
+    "김재우",
+    "김재현",
+    "김종익님",
+    "김준호",
+    "김지영",
+    "김지완",
+    "김태석"
+  ],
+  "dates": [
+    "06/01",
+    "06/02",
+    "06/03",
+    "06/04",
+    "06/05",
+    "06/06",
+    "06/07",
+    "06/08",
+    "06/09",
+    "06/10",
+    "06/11",
+    "06/12",
+    "06/13",
+    "06/14",
+    "06/15",
+    "06/16",
+    "06/17",
+    "06/18",
+    "06/19",
+    "06/20",
+    "06/21",
+    "06/22",
+    "06/23",
+    "06/24",
+    "06/25",
+    "06/26",
+    "06/27",
+    "06/28",
+    "06/30",
+    "07/01",
+    "07/02",
+    "07/03",
+    "07/04",
+    "07/05",
+    "07/06",
+    "07/07",
+    "07/08",
+    "07/09",
+    "07/10",
+    "07/11",
+    "07/12",
+    "07/13",
+    "07/14",
+    "07/15",
+    "07/16",
+    "07/17",
+    "07/18",
+    "07/19",
+    "07/20",
+    "07/21",
+    "07/22",
+    "07/23",
+    "07/24",
+    "07/25",
+    "07/26",
+    "07/27",
+    "07/28",
+    "07/29",
+    "07/30",
+    "07/31",
+    "08/01",
+    "08/02",
+    "08/03",
+    "08/05",
+    "08/06",
+    "08/07",
+    "08/08",
+    "08/09",
+    "08/10",
+    "08/11",
+    "08/12",
+    "08/13",
+    "08/14",
+    "08/15",
+    "08/16",
+    "08/17",
+    "08/18",
+    "08/19",
+    "08/20",
+    "08/21",
+    "08/22",
+    "08/23",
+    "08/24",
+    "08/25",
+    "08/26",
+    "08/27",
+    "08/28",
+    "08/29",
+    "08/30",
+    "08/31",
+    "09/01",
+    "09/02",
+    "09/03",
+    "09/05",
+    "09/06",
+    "09/07",
+    "09/08",
+    "09/09",
+    "09/10",
+    "09/11",
+    "09/12",
+    "09/13",
+    "09/14",
+    "09/15",
+    "09/16",
+    "09/17",
+    "09/18",
+    "09/19",
+    "09/20",
+    "09/21",
+    "09/22",
+    "09/23",
+    "09/24",
+    "09/25",
+    "09/26",
+    "09/27",
+    "09/28",
+    "09/29",
+    "09/30"
+  ],
+  "matrix": {
+    "가능하면": {
+      "09/18": {
+        "therapist": "강수지",
+        "time": "14:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "강병호": {
+      "07/07": {
+        "therapist": "신환",
+        "time": "12:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "07/14": {
+        "therapist": "신환",
+        "time": "12:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "08/08": {
+        "therapist": "신환",
+        "time": "12:15:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "09/16": {
+        "therapist": "신환",
+        "time": "12:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "강창석": {
+      "06/11": {
+        "therapist": "안진경",
+        "time": "12:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "강창석치료사": {
+      "07/12": {
+        "therapist": "강수지",
+        "time": "13:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "강창석치료사환자": {
+      "07/11": {
+        "therapist": "강수지",
+        "time": "12:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "07/15": {
+        "therapist": "김민선",
+        "time": "11:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "09/15": {
+        "therapist": "강수지",
+        "time": "11:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "건강검진후": {
+      "07/21": {
+        "therapist": "김민선",
+        "time": "12:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "경과기록지": {
+      "08/19": {
+        "therapist": "양지영",
+        "time": "15:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "고승완": {
+      "06/12": {
+        "therapist": "신환",
+        "time": "12:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "고주파": {
+      "06/14": {
+        "therapist": "양지영",
+        "time": "12:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "07/31": {
+        "therapist": "강수지",
+        "time": "10:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "08/13": {
+        "therapist": "양지영",
+        "time": "12:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "09/13": {
+        "therapist": "양지영",
+        "time": "10:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "고주파데모": {
+      "07/28": {
+        "therapist": "안진경",
+        "time": "15:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "고주파만": {
+      "07/25": {
+        "therapist": "안진경",
+        "time": "11:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "고주파만먼저": {
+      "07/28": {
+        "therapist": "안진경",
+        "time": "13:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "고주파먼저": {
+      "08/27": {
+        "therapist": "양지영",
+        "time": "13:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "고주파열치료": {
+      "09/05": {
+        "therapist": "김민선",
+        "time": "11:45:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "공인인증서": {
+      "06/18": {
+        "therapist": "비고",
+        "time": "10:30:00",
+        "treatment": "7/17",
+        "isFirst": false
+      }
+    },
+    "곽동우": {
+      "06/11": {
+        "therapist": "신환",
+        "time": "13:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "구현정B": {
+      "09/06": {
+        "therapist": "신환",
+        "time": "12:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "권영준": {
+      "07/11": {
+        "therapist": "신환",
+        "time": "11:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "권영준C": {
+      "07/17": {
+        "therapist": "신환",
+        "time": "12:15:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "08/06": {
+        "therapist": "신환",
+        "time": "11:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "08/07": {
+        "therapist": "신환",
+        "time": "11:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "08/08": {
+        "therapist": "신환",
+        "time": "11:45:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "08/11": {
+        "therapist": "신환",
+        "time": "10:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "08/12": {
+        "therapist": "신환",
+        "time": "11:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "08/14": {
+        "therapist": "신환",
+        "time": "11:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "08/18": {
+        "therapist": "신환",
+        "time": "10:45:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "08/27": {
+        "therapist": "신환",
+        "time": "11:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "08/29": {
+        "therapist": "신환",
+        "time": "11:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "09/01": {
+        "therapist": "신환",
+        "time": "11:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "09/02": {
+        "therapist": "신환",
+        "time": "13:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "09/05": {
+        "therapist": "신환",
+        "time": "10:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "09/08": {
+        "therapist": "신환",
+        "time": "10:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "09/09": {
+        "therapist": "신환",
+        "time": "11:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "09/11": {
+        "therapist": "신환",
+        "time": "13:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "09/12": {
+        "therapist": "신환",
+        "time": "10:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "권윤구": {
+      "06/07": {
+        "therapist": "신환",
+        "time": "10:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "08/10": {
+        "therapist": "신환",
+        "time": "10:15:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "금요일": {
+      "08/19": {
+        "therapist": "김민선",
+        "time": "14:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "금일만": {
+      "09/16": {
+        "therapist": "양지영",
+        "time": "12:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김나현C": {
+      "08/23": {
+        "therapist": "신환",
+        "time": "12:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김남수": {
+      "08/24": {
+        "therapist": "..",
+        "time": "11:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "08/25": {
+        "therapist": "신환",
+        "time": "11:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김덕희": {
+      "07/10": {
+        "therapist": "신환",
+        "time": "11:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김도원": {
+      "08/16": {
+        "therapist": "신환",
+        "time": "13:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김민선": {
+      "06/14": {
+        "therapist": "비고",
+        "time": "10:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김민순": {
+      "08/08": {
+        "therapist": "신환",
+        "time": "15:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김밥주문": {
+      "06/12": {
+        "therapist": "비고",
+        "time": "10:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "06/20": {
+        "therapist": "비고",
+        "time": "10:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김보민": {
+      "09/17": {
+        "therapist": "신환",
+        "time": "10:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김성경": {
+      "06/06": {
+        "therapist": "비고",
+        "time": "10:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김소정": {
+      "06/09": {
+        "therapist": "비고",
+        "time": "15:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "09/15": {
+        "therapist": "신환",
+        "time": "13:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김수경": {
+      "06/28": {
+        "therapist": "비고",
+        "time": "10:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김승민C": {
+      "07/11": {
+        "therapist": "신환",
+        "time": "11:45:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "07/15": {
+        "therapist": "신환",
+        "time": "11:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "08/12": {
+        "therapist": "신환",
+        "time": "12:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김영진": {
+      "08/07": {
+        "therapist": "신환",
+        "time": "14:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김예린": {
+      "07/24": {
+        "therapist": "신환",
+        "time": "15:15:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김요한C": {
+      "06/06": {
+        "therapist": "신환",
+        "time": "14:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김윤겸": {
+      "08/07": {
+        "therapist": "신환",
+        "time": "12:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김윤정": {
+      "07/22": {
+        "therapist": "신환",
+        "time": "12:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "09/17": {
+        "therapist": "신환",
+        "time": "12:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김의주": {
+      "06/30": {
+        "therapist": "신환",
+        "time": "10:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김인태": {
+      "07/17": {
+        "therapist": "신환",
+        "time": "12:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "08/02": {
+        "therapist": "신환",
+        "time": "13:15:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김장수": {
+      "07/29": {
+        "therapist": "신환",
+        "time": "14:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      },
+      "07/30": {
+        "therapist": "신환",
+        "time": "15:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김장헌": {
+      "08/11": {
+        "therapist": "신환",
+        "time": "11:45:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김재우": {
+      "08/08": {
+        "therapist": "신환",
+        "time": "12:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김재현": {
+      "08/09": {
+        "therapist": "신환",
+        "time": "10:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김종익님": {
+      "06/10": {
+        "therapist": "비고",
+        "time": "10:30:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김준호": {
+      "07/05": {
+        "therapist": "신환",
+        "time": "13:15:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김지영": {
+      "07/29": {
+        "therapist": "신환",
+        "time": "10:15:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김지완": {
+      "09/16": {
+        "therapist": "신환",
+        "time": "10:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    },
+    "김태석": {
+      "09/15": {
+        "therapist": "신환",
+        "time": "12:00:00",
+        "treatment": "치료",
+        "isFirst": false
+      }
+    }
+  }
+};
+
+        let filteredData = null;
+
+        // 통계 계산
+        function calculateStats() {
+            let treatmentCount = 0;
+            let firstVisitCount = 0;
+
+            for (const patient in ptData.matrix) {
+                for (const date in ptData.matrix[patient]) {
+                    treatmentCount++;
+                    if (ptData.matrix[patient][date].isFirst) {
+                        firstVisitCount++;
+                    }
+                }
+            }
+
+            document.getElementById('treatmentCount').textContent = `치료: ${treatmentCount}건`;
+            document.getElementById('firstVisitCount').textContent = `첫내원: ${firstVisitCount}건`;
+        }
+
+        // 치료사 클래스명 정규화
+        function getTherapistClass(therapistName) {
+            const normalized = therapistName.trim();
+            const validClasses = ['신환', '강수지', '김민선', '양지영', '안진경', '비고'];
+
+            for (const cls of validClasses) {
+                if (normalized.includes(cls)) {
+                    return cls;
+                }
+            }
+            return 'default';
+        }
+
+        // 테이블 생성
+        function createTable() {
+            const currentData = filteredData || ptData;
+
+            // 환자 목록 렌더링
+            const patientList = document.getElementById('patient-list');
+            patientList.innerHTML = currentData.patients.map(patient => `
+                <div class="patient-cell" onclick="highlightPatient('${patient}')">${patient}</div>
+            `).join('');
+
+            // 날짜 헤더 렌더링
+            const dateHeader = document.getElementById('dateHeader');
+            dateHeader.innerHTML = currentData.dates.map(date => `
+                <div class="date-cell">${date}</div>
+            `).join('');
+
+            // 환자별 데이터 행 렌더링
+            const patientRows = document.getElementById('patientRows');
+            patientRows.innerHTML = currentData.patients.map(patient => {
+                const rowCells = currentData.dates.map(date => {
+                    const treatment = ptData.matrix[patient] && ptData.matrix[patient][date];
+                    if (treatment) {
+                        const therapistClass = getTherapistClass(treatment.therapist);
+                        const firstClass = treatment.isFirst ? 'first-visit' : '';
+
+                        return `
+                            <div class="treatment-cell ${therapistClass} ${firstClass}"
+                                 title="${patient}\\n${date} ${treatment.time}\\n${treatment.therapist}\\n${treatment.treatment}">
+                                <div class="treatment-text">${treatment.treatment}</div>
+                            </div>
+                        `;
+                    } else {
+                        return `<div class="treatment-cell empty"></div>`;
+                    }
+                }).join('');
+
+                return `<div class="patient-row">${rowCells}</div>`;
+            }).join('');
+        }
+
+        // 환자 검색 및 필터
+        function filterPatients() {
+            const searchTerm = document.getElementById('patientFilter').value.toLowerCase();
+            const firstVisitOnly = document.getElementById('firstVisitOnly').checked;
+
+            if (!searchTerm && !firstVisitOnly) {
+                filteredData = null;
+                createTable();
+                return;
+            }
+
+            let filteredPatients = ptData.patients;
+
+            // 이름 필터
+            if (searchTerm) {
+                filteredPatients = filteredPatients.filter(patient =>
+                    patient.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            // 첫내원 필터
+            if (firstVisitOnly) {
+                filteredPatients = filteredPatients.filter(patient => {
+                    const visits = ptData.matrix[patient] || {};
+                    return Object.values(visits).some(visit => visit.isFirst);
+                });
+            }
+
+            filteredData = {
+                patients: filteredPatients,
+                dates: ptData.dates
+            };
+
+            createTable();
+        }
+
+        // 환자 하이라이트
+        function highlightPatient(patientName) {
+            // 모든 하이라이트 제거
+            document.querySelectorAll('.patient-cell').forEach(cell => {
+                cell.style.backgroundColor = '';
+            });
+            document.querySelectorAll('.patient-row').forEach(row => {
+                row.style.backgroundColor = '';
+            });
+
+            // 선택된 환자 하이라이트
+            const cells = document.querySelectorAll('.patient-cell');
+            const rows = document.querySelectorAll('.patient-row');
+
+            cells.forEach((cell, index) => {
+                if (cell.textContent === patientName) {
+                    cell.style.backgroundColor = '#fffacd';
+                    if (rows[index]) {
+                        rows[index].style.backgroundColor = '#fffacd';
+                    }
+                }
+            });
+        }
+
+        // 키보드 네비게이션
+        document.addEventListener('keydown', function(e) {
+            const scrollAmount = 160; // 2셀 분량
+            const dataScroll = document.getElementById('dataScroll');
+
+            switch(e.key) {
+                case 'ArrowLeft':
+                    dataScroll.scrollLeft -= scrollAmount;
+                    e.preventDefault();
+                    break;
+                case 'ArrowRight':
+                    dataScroll.scrollLeft += scrollAmount;
+                    e.preventDefault();
+                    break;
+                case 'Home':
+                    dataScroll.scrollLeft = 0;
+                    e.preventDefault();
+                    break;
+                case 'End':
+                    dataScroll.scrollLeft = dataScroll.scrollWidth;
+                    e.preventDefault();
+                    break;
+            }
+        });
+
+        // 마우스 휠 가로 스크롤
+        document.getElementById('dataScroll').addEventListener('wheel', function(e) {
+            if (e.shiftKey) {
+                e.preventDefault();
+                this.scrollLeft += e.deltaY;
+            }
+        });
+
+        // 초기화
+        calculateStats();
+        createTable();
+
+        console.log('✅ 실제 PT 매트릭스 로딩 완료!');
+        console.log(`📊 환자 ${ptData.patients.length}명, 날짜 ${ptData.dates.length}일`);
+        console.log('🎮 사용법: 좌우 화살표로 스크롤, Shift+휠로 가로스크롤, 환자명 클릭으로 하이라이트');
+    </script>
+</body>
+</html>

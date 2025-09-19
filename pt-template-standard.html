@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📋 PT 데이터 입력 표준 양식</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #495057;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .pros, .cons {
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .pros {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+
+        .cons {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+
+        .template-example {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            overflow-x: auto;
+        }
+
+        .recommendation {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .recommendation strong {
+            color: #0c5460;
+        }
+
+        .button {
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 5px;
+        }
+
+        .button:hover {
+            background: #0056b3;
+        }
+
+        .alternative {
+            border-left: 4px solid #ffc107;
+            background: #fff3cd;
+            padding: 15px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📋 PT 데이터 관리 - 현실적 해결책</h1>
+        <p>엑셀 파싱의 어려움과 더 나은 대안들</p>
+    </div>
+
+    <div class="section">
+        <h2>🚨 현재 엑셀 파일의 문제점</h2>
+
+        <div class="pros-cons">
+            <div class="cons">
+                <h3>❌ 파싱 어려움</h3>
+                <ul>
+                    <li>치료사명 불일치 (진환1, 신환, 신진영1...)</li>
+                    <li>환자명 오류 ("김밥주문", "고주파만"...)</li>
+                    <li>날짜 형식 혼재</li>
+                    <li>병합된 셀, 빈 셀</li>
+                    <li>시트마다 다른 레이아웃</li>
+                </ul>
+            </div>
+            <div class="pros">
+                <h3>✅ 엑셀의 장점</h3>
+                <ul>
+                    <li>익숙한 인터페이스</li>
+                    <li>유연한 편집</li>
+                    <li>기존 워크플로우 유지</li>
+                    <li>오프라인 작업 가능</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>💡 해결책 비교</h2>
+
+        <div class="alternative">
+            <h3>🥇 추천: 표준화된 CSV 양식</h3>
+            <p><strong>가장 현실적이고 간단한 방법</strong></p>
+
+            <div class="template-example">
+날짜,환자명,치료사,코스,현재회차,총회차,비고
+2025-06-01,김철수,진환1,A,1,10,첫내원
+2025-06-03,김철수,진환1,A,2,10,
+2025-06-01,이영희,신진영,B,1,15,첫내원
+2025-06-05,이영희,신진영,B,2,15,
+            </div>
+
+            <div class="pros-cons" style="margin-top: 15px;">
+                <div class="pros">
+                    <strong>장점:</strong>
+                    <ul>
+                        <li>100% 정확한 파싱</li>
+                        <li>엑셀에서 쉽게 편집</li>
+                        <li>데이터 검증 가능</li>
+                        <li>백업/복원 간단</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <strong>단점:</strong>
+                    <ul>
+                        <li>기존 양식 변경 필요</li>
+                        <li>초기 데이터 변환 작업</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="alternative">
+            <h3>🥈 웹 기반 입력 폼</h3>
+            <p>현대적이고 사용자 친화적</p>
+
+            <table>
+                <tr><th>기능</th><th>설명</th></tr>
+                <tr><td>드롭다운 선택</td><td>환자명, 치료사 실수 방지</td></tr>
+                <tr><td>달력 위젯</td><td>날짜 입력 표준화</td></tr>
+                <tr><td>자동 계산</td><td>회차, 연간 방문 자동 증가</td></tr>
+                <tr><td>실시간 저장</td><td>데이터 손실 방지</td></tr>
+            </table>
+        </div>
+
+        <div class="alternative">
+            <h3>🥉 구글 시트 연동</h3>
+            <p>협업과 실시간 업데이트</p>
+
+            <div class="pros-cons">
+                <div class="pros">
+                    <ul>
+                        <li>여러 사람 동시 편집</li>
+                        <li>실시간 동기화</li>
+                        <li>자동 백업</li>
+                        <li>API 연동 가능</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <ul>
+                        <li>인터넷 연결 필요</li>
+                        <li>구글 계정 필요</li>
+                        <li>보안 고려사항</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>📋 표준 엑셀 템플릿 (현재 시스템 개선안)</h2>
+
+        <div class="recommendation">
+            <strong>💡 권장사항:</strong> 기존 엑셀 시스템을 유지하되, 다음 규칙을 적용
+        </div>
+
+        <h3>규칙 1: 고정된 레이아웃</h3>
+        <div class="template-example">
+A1: 날짜        B1: 진환1      C1: 신진영     D1: 심창원     E1: 전민수
+A2: 09:00      B2: 김철수     C2:           D2: 이영희     E2:
+A3: 09:30      B3:           C3: 박민수     D3:           E3: 정수진
+        </div>
+
+        <h3>규칙 2: 데이터 형식 통일</h3>
+        <table>
+            <tr><th>항목</th><th>올바른 형식</th><th>잘못된 예</th></tr>
+            <tr><td>환자명</td><td>김철수, 김철수A</td><td>김철수님, 김밥주문</td></tr>
+            <tr><td>치료사명</td><td>진환1, 신진영</td><td>진환1(휴가), 신진영선생님</td></tr>
+            <tr><td>치료정보</td><td>A.3/10(5)</td><td>A코스 3회, 치료</td></tr>
+            <tr><td>시간</td><td>09:00, 14:30</td><td>9시, 오후2시반</td></tr>
+        </table>
+
+        <h3>규칙 3: 필수 정보만 입력</h3>
+        <ul>
+            <li>환자명 (필수)</li>
+            <li>치료 회차 정보 (A.3/10 형태)</li>
+            <li>연간 방문 횟수 ((5) 형태)</li>
+            <li>첫내원은 ⭐ 표시</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>🎯 즉시 적용 가능한 해결책</h2>
+
+        <div class="recommendation">
+            <strong>1단계:</strong> 현재 엑셀 파일에서 CSV로 내보내기<br>
+            <strong>2단계:</strong> 데이터 정리 (환자명, 치료사명 표준화)<br>
+            <strong>3단계:</strong> 정리된 CSV를 매트릭스에 적용
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="#" class="button" onclick="generateCSVTemplate()">📁 CSV 템플릿 다운로드</a>
+            <a href="#" class="button" onclick="showWebForm()">🌐 웹 입력 폼 보기</a>
+            <a href="#" class="button" onclick="generateExcelRules()">📋 엑셀 규칙 가이드</a>
+        </div>
+    </div>
+
+    <script>
+        function generateCSVTemplate() {
+            const csvContent = `날짜,환자명,치료사,코스,현재회차,총회차,연간방문,비고
+2025-06-01,김철수,진환1,A,1,10,1,첫내원
+2025-06-03,김철수,진환1,A,2,10,2,
+2025-06-01,이영희,신진영,B,1,15,1,첫내원
+2025-06-05,이영희,신진영,B,2,15,2,
+2025-06-02,박민수,심창원,C,1,20,1,첫내원`;
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'PT추적_표준템플릿.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function showWebForm() {
+            alert('웹 입력 폼은 다음 단계에서 구현할 예정입니다.\\n\\n기능:\\n- 환자/치료사 드롭다운\\n- 날짜 선택기\\n- 자동 회차 계산\\n- 실시간 저장');
+        }
+
+        function generateExcelRules() {
+            const rules = `PT 데이터 입력 규칙
+
+1. 치료사명 통일:
+   - 진환1, 신진영, 심창원, 전민수, 이주연, 최영, 최설
+
+2. 환자명 규칙:
+   - 한글 이름 + 선택적 알파벳 (김철수, 김철수A)
+   - 메모나 특수 내용 금지
+
+3. 치료 정보 형식:
+   - 코스.현재회차/총회차(연간방문)
+   - 예: A.3/10(5) = A코스, 10회 중 3차, 올해 5번째
+
+4. 시간 형식:
+   - HH:MM (09:00, 14:30)
+
+5. 첫내원 표시:
+   - ⭐ 기호 사용`;
+
+            const blob = new Blob([rules], { type: 'text/plain;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'PT데이터_입력규칙.txt');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        console.log('💡 PT 데이터 표준화 가이드 로딩 완료');
+    </script>
+</body>
+</html>
