@@ -9,7 +9,8 @@
       "Bash(start real-patient-matrix.html)",
       "Bash(start patient-schedule-matrix.html)",
       "Bash(git init:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git config:*)"
     ],
     "deny": [],
     "ask": []
